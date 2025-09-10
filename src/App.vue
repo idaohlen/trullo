@@ -4,11 +4,11 @@
   <h2>Tasks</h2>
     <div v-if="loading">Loading...</div>
     <div v-else-if="error">Error: {{ error.message }}</div>
-    <ul v-else>
-      <li v-for="task in (result?.tasks ?? []) as Task[]" :key="task._id as string">
-        {{ task.title }}
-      </li>
-    </ul>
+    <div v-else>
+      <div v-for="task in (result?.tasks ?? []) as Task[]" :key="task._id as string">
+        <div>{{ task.title }}: {{ task.description }}</div>
+      </div>
+    </div>
 </template>
 
 <script setup lang="ts">

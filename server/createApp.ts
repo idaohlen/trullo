@@ -34,11 +34,6 @@ export async function createApp(): Promise<Express> {
 
   app.use(express.json());
 
-  // API welcome endpoint
-  app.get("/api", (_req, res) => {
-    res.json({ message: "Welcome to the Trullo API!" });
-  });
-
   // GraphQL endpoint
   app.use("/api", expressMiddleware(apolloServer));
 

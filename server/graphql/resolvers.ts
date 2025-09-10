@@ -1,6 +1,7 @@
 import type { Types } from "mongoose";
 import User from "../models/User.js";
 import Task from "../models/Task.js";
+import type { TaskStatus } from "../models/Task";
 
 export default {
   Query: {
@@ -17,6 +18,20 @@ export default {
     },
     tasks: async (_: unknown) => {
       return await Task.find({});
+    },
+  },
+
+  Task: {
+    assignedTo: async (task: any) => {
+      if (!task.assignedTo) return null;
+      try {
+        if (typeof task.assignedTo === "object" && task.assignedTo._id)
+          return task.assignedTo;
+        const user = await User.findById(task.assignedTo);
+        return user || null;
+      } catch {
+        return null;
+      }
     },
   },
   Mutation: {
@@ -37,7 +52,10 @@ export default {
     // update
     updateUser: async (
       _: unknown,
-      { id, ...rest }: {
+      {
+        id,
+        ...rest
+      }: {
         id: string;
         name?: string;
         email?: string;
@@ -69,10 +87,14 @@ export default {
     // update
     updateTask: async (
       _: unknown,
-      { id, ...rest }: {
+      {
+        id,
+        ...rest
+      }: {
         id: string;
         title?: string;
         description?: string;
+        status?: TaskStatus;
         assignedTo?: Types.ObjectId | string;
       }
     ) => {
