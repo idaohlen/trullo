@@ -1,14 +1,8 @@
-import mongoose from "mongoose";
-import type { Document, Model, Schema } from "mongoose";
+import mongoose, { type InferSchemaType, type Document } from "mongoose";
 
-export interface Task extends Document {
-  title: string;
-}
-
-const schema: Schema<Task> = new mongoose.Schema({
+const taskSchema = new mongoose.Schema({
   title: { type: String, required: true },
 });
 
-const TaskModel: Model<Task> = mongoose.model<Task>("Task", schema, "tasks");
-
-export default TaskModel;
+export type Task = InferSchemaType<typeof taskSchema> & Document;
+export default mongoose.model("Task", taskSchema, "tasks");
