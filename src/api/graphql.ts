@@ -3,7 +3,7 @@ import { gql } from "@apollo/client/core";
 export const GET_USERS = gql`
   query GetUsers {
     users {
-      _id
+      id
       name
       email
     }
@@ -13,7 +13,7 @@ export const GET_USERS = gql`
 export const GET_USER = gql`
   query GetUser($id: ID!) {
     user(id: $id) {
-      _id
+      id
       name
       email
       createdAt
@@ -24,14 +24,13 @@ export const GET_USER = gql`
 export const GET_TASKS = gql`
   query GetTasks {
     tasks {
-      _id
+      id
       title
       description
       status
-      assignedTo {
-        _id
+      assignedTo
+      user {
         name
-        email
       }
       createdAt
       updatedAt
@@ -43,14 +42,13 @@ export const GET_TASKS = gql`
 export const GET_TASK = gql`
   query GetTask($id: ID!) {
     task(id: $id) {
-      _id
+      id
       title
       description
       status
-      assignedTo {
-        _id
+      assignedTo
+      user {
         name
-        email
       }
       createdAt
       updatedAt

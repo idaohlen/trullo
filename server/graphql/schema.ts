@@ -7,7 +7,7 @@ export default `#graphql
   }
 
   type User {
-    _id: ID!
+    id: ID!
     name: String
     email: String!
     password: String!
@@ -16,14 +16,15 @@ export default `#graphql
   }
 
   type Task {
-    _id: ID!
+    id: ID!
     title: String!
     description: String
     status: TaskStatus!
     createdAt: String
     updatedAt: String
     finishedAt: String
-    assignedTo: User
+    assignedTo: ID
+    user: User
   }
 
   type Query {

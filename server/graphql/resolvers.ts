@@ -1,7 +1,6 @@
 import type { Types } from "mongoose";
-import User from "../models/User.js";
-import Task from "../models/Task.js";
-import type { TaskStatus } from "../models/Task";
+import User, { type User as UserDoc } from "../models/User.js";
+import Task, { type TaskStatus, type Task as TaskDoc } from "../models/Task.js";
 
 export default {
   Query: {
@@ -21,19 +20,6 @@ export default {
     },
   },
 
-  Task: {
-    assignedTo: async (task: any) => {
-      if (!task.assignedTo) return null;
-      try {
-        if (typeof task.assignedTo === "object" && task.assignedTo._id)
-          return task.assignedTo;
-        const user = await User.findById(task.assignedTo);
-        return user || null;
-      } catch {
-        return null;
-      }
-    },
-  },
   Mutation: {
     /* USERS */
 
@@ -105,5 +91,20 @@ export default {
     deleteTask: async (_: unknown, { id }: { id: String }) => {
       return !!(await Task.findByIdAndDelete(id));
     },
+  },
+
+  User: {
+    id: (doc: UserDoc) => String(doc._id),
+    createdAt: (doc: UserDoc) => doc.createdAt ? doc.createdAt.toISOString() : null,
+    updatedAt: (doc: UserDoc) => doc.updatedAt ? doc.updatedAt.toISOString() : null,
+  },
+
+  Task: {
+    id: (doc: TaskDoc) => String(doc._id),
+    createdAt: (doc: TaskDoc) => doc.createdAt ? doc.createdAt.toISOString() : null,
+    updatedAt: (doc: TaskDoc) => doc.updatedAt ? doc.updatedAt.toISOString() : null,
+    user: async (doc: TaskDoc, _args: unknown) => {
+      return await User.findById(doc.assignedTo);
+    }
   },
 };
