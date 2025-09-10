@@ -15,4 +15,4 @@ const taskSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 export type Task = InferSchemaType<typeof taskSchema> & Document;
-export default mongoose.model("Task", taskSchema, "tasks");
+export default mongoose.models.Task || mongoose.model("Task", taskSchema, "tasks");
