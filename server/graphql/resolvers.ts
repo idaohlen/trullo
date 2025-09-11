@@ -1,7 +1,7 @@
 import type { Types } from "mongoose";
 import { GraphQLError } from "graphql";
-import User, { type User as UserDoc } from "../models/User.js";
-import Task, { type TaskStatus, type Task as TaskDoc } from "../models/Task.js";
+import User, { UserValidationSchema, type User as UserDoc } from "../models/User.js";
+import Task, { TaskValidationSchema, type TaskStatus, type Task as TaskDoc } from "../models/Task.js";
 
 export default {
   Query: {
@@ -33,17 +33,24 @@ export default {
         password: string;
       }
     ) => {
+      const parseResult = UserValidationSchema.safeParse(args);
+
+      if (!parseResult.success) {
+        throw new GraphQLError("Validation error", {
+          extensions: { code: "BAD_USER_INPUT", error: parseResult.error }
+        });
+      }
+
       try {
-        return await User.create(args);
+        return await User.create(parseResult.data);
       } catch (error: any) {
         if (error.code === 11000) {
           throw new GraphQLError("Email already exists", {
             extensions: { code: "CONFLICT" }
           });
         }
-
         throw new GraphQLError("Failed to create user", {
-          extensions: { code: "BAD_USER_INPUT", error }
+          extensions: { code: "INTERNAL_SERVER_ERROR", error }
         });
       }
     },
@@ -61,13 +68,22 @@ export default {
         password?: string;
       }
     ) => {
-      const updatedUser = await User.findByIdAndUpdate(id, rest, { new: true });
+      const UserUpdateSchema = UserValidationSchema.partial();
+      const parseResult = UserUpdateSchema.safeParse(rest);
 
+      if (!parseResult.success) {
+        throw new GraphQLError("Validation error", {
+          extensions: { code: "BAD_USER_INPUT", error: parseResult.error }
+        });
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(id, parseResult.data, { new: true });
       if (!updatedUser) {
         throw new GraphQLError("User not found", {
           extensions: { code: "NOT_FOUND", userId: id }
         });
       }
+
       return updatedUser;
     },
 
@@ -93,11 +109,19 @@ export default {
         assignedTo?: Types.ObjectId | string;
       }
     ) => {
+      const parseResult = TaskValidationSchema.safeParse(args);
+
+      if (!parseResult.success) {
+        throw new GraphQLError("Validation error", {
+          extensions: { code: "BAD_USER_INPUT", error: parseResult.error }
+        });
+      }
+
       try {
-        return await Task.create(args);
+        return await Task.create(parseResult.data);
       } catch (error: any) {
         throw new GraphQLError("Failed to create task", {
-          extensions: { code: "BAD_USER_INPUT", error }
+          extensions: { code: "INTERNAL_SERVER_ERROR", error }
         });
       }
     },
@@ -116,13 +140,23 @@ export default {
         assignedTo?: Types.ObjectId | string;
       }
     ) => {
-      const updatedTask = await Task.findByIdAndUpdate(id, rest, { new: true });
+      const TaskUpdateSchema = TaskValidationSchema.partial();
+      const parseResult = TaskUpdateSchema.safeParse(rest);
+
+      if (!parseResult.success) {
+        throw new GraphQLError("Validation error", {
+          extensions: { code: "BAD_USER_INPUT", error: parseResult.error }
+        });
+      }
+      
+      const updatedTask = await Task.findByIdAndUpdate(id, parseResult.data, { new: true });
 
       if (!updatedTask) {
         throw new GraphQLError("Task not found", {
           extensions: { code: "NOT_FOUND", taskId: id }
         });
       }
+
       return updatedTask;
     },
 
