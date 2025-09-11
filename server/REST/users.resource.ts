@@ -6,26 +6,7 @@ const router = express.Router();
 router.get("/:userId", getById);
 router.put("/:userId", updateById);
 router.delete("/:userId", deleteById);
-router.post("/", createNew);
 router.get("/", getAll);
-
-async function createNew(req: Request, res: Response) {
-  const parseResult = UserValidationSchema.safeParse(req.body);
-  
-  if (!parseResult.success) {
-    return res.status(400).json({
-      status: "FAIL",
-      message: "Validation error when parsing user input for a new user",
-      error: parseResult.error
-    });
-  }
-  try {
-    const user = await User.create(parseResult.data);
-    res.status(200).json({ status: "SUCCESS", message: "Created new user", data: user });
-  } catch (error) {
-    res.status(500).json({ status: "FAIL", message: "Internal server error", error });
-  }
-}
 
 async function getAll(req: Request, res: Response) {
   try {
@@ -38,7 +19,7 @@ async function getAll(req: Request, res: Response) {
 
 async function getById(req: Request, res: Response) {
   try {
-    const user = await User.findById(req.params.taskId);
+    const user = await User.findById(req.params.userId);
     res.status(200).json({ status: "SUCCESS", message: "Retrieved user by ID", data: user });
   } catch (error) {
     res.status(500).json({ status: "FAIL", message: "Internal server error", error });
@@ -66,7 +47,13 @@ async function updateById(req: Request, res: Response) {
 
 async function deleteById(req: Request, res: Response) {
   try {
-    await User.findByIdAndDelete(req.params.taskId);
+    const deletedUser = await User.findByIdAndDelete(req.params.userId);
+    
+    if (!deletedUser) return res.status(404).json({
+      status: "FAIL",
+      message: "User not found"
+    });
+    
     res.status(200).json({ status: "SUCCESS", message: "Deleted user by ID" });
   } catch (error) {
     res.status(500).json({ status: "FAIL", message: "Internal server error", error });
