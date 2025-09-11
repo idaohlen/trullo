@@ -1,5 +1,5 @@
 import express, { type Request, type Response } from "express";
-import User, { UserValidationSchema } from "../models/User";
+import User, { UserValidationSchema } from "../../models/User";
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ router.put("/:userId", updateById);
 router.delete("/:userId", deleteById);
 router.get("/", getAll);
 
-async function getAll(req: Request, res: Response) {
+async function getAll(_req: Request, res: Response) {
   try {
     const users = await User.find({});
     res.status(200).json({ status: "SUCCESS", message: "Retrieved all users", data: users });

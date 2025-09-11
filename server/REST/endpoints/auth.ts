@@ -1,5 +1,5 @@
 import express, { type Request, type Response } from "express";
-import User, { UserValidationSchema } from "../models/User";
+import User, { UserValidationSchema } from "../../models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";

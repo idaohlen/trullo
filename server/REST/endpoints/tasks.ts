@@ -1,5 +1,5 @@
 import express, { type Request, type Response } from "express";
-import Task, { TaskValidationSchema } from "../models/Task";
+import Task, { TaskValidationSchema } from "../../models/Task";
 
 const router = express.Router();
 
@@ -27,7 +27,7 @@ async function createNew(req: Request, res: Response) {
   }
 }
 
-async function getAll(req: Request, res: Response) {
+async function getAll(_req: Request, res: Response) {
   try {
     const tasks = await Task.find({});
     res.status(200).json({ status: "SUCCESS", message: "Retrieved all tasks", data: tasks });
