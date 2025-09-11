@@ -1,5 +1,5 @@
 import express, { type Request, type Response } from "express";
-import Task from "../models/Task";
+import Task, { TaskValidationSchema } from "../models/Task";
 
 const router = express.Router();
 
@@ -10,8 +10,17 @@ router.post("/", createNew);
 router.get("/", getAll);
 
 async function createNew(req: Request, res: Response) {
+  const parseResult = TaskValidationSchema.safeParse(req.body);
+  
+  if (!parseResult.success) {
+    return res.status(400).json({
+      status: "FAIL",
+      message: "Validation error when parsing user input for a new task",
+      error: parseResult.error
+    });
+  }
   try {
-    const task = await Task.create(req.body);
+    const task = await Task.create(parseResult.data);
     res.status(200).json({ status: "SUCCESS", message: "Created new task", data: task });
   } catch (error) {
     res.status(500).json({ status: "FAIL", message: "Internal server error", error });
@@ -37,8 +46,19 @@ async function getById(req: Request, res: Response) {
 }
 
 async function updateById(req: Request, res: Response) {
+  const TaskUpdateSchema = TaskValidationSchema.partial();
+  const parseResult = TaskUpdateSchema.safeParse(req.body);
+  
+  if (!parseResult.success) {
+    return res.status(400).json({
+      status: "FAIL",
+      message: "Validation error when parsing user input for updating task data",
+      error: parseResult.error
+    });
+  }
+
   try {
-    const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, req.body, {new: true });
+    const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, parseResult.data, {new: true });
     res.status(200).json({ status: "SUCCESS", message: "Updated task by ID", data: updatedTask });
   } catch (error) {
     res.status(500).json({ status: "FAIL", message: "Internal server error", error });

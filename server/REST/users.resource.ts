@@ -1,5 +1,5 @@
 import express, { type Request, type Response } from "express";
-import User from "../models/User";
+import User, { UserValidationSchema } from "../models/User";
 
 const router = express.Router();
 
@@ -10,8 +10,17 @@ router.post("/", createNew);
 router.get("/", getAll);
 
 async function createNew(req: Request, res: Response) {
+  const parseResult = UserValidationSchema.safeParse(req.body);
+  
+  if (!parseResult.success) {
+    return res.status(400).json({
+      status: "FAIL",
+      message: "Validation error when parsing user input for a new user",
+      error: parseResult.error
+    });
+  }
   try {
-    const user = await User.create(req.body);
+    const user = await User.create(parseResult.data);
     res.status(200).json({ status: "SUCCESS", message: "Created new user", data: user });
   } catch (error) {
     res.status(500).json({ status: "FAIL", message: "Internal server error", error });
@@ -37,8 +46,18 @@ async function getById(req: Request, res: Response) {
 }
 
 async function updateById(req: Request, res: Response) {
+  const UserUpdateSchema = UserValidationSchema.partial();
+  const parseResult = UserUpdateSchema.safeParse(req.body);
+  
+  if (!parseResult.success) {
+    return res.status(400).json({
+      status: "FAIL",
+      message: "Validation error when parsing user input for updating user data",
+      error: parseResult.error
+    });
+  }
   try {
-    const updatedUser = await User.findByIdAndUpdate(req.params.userId, req.body, {new: true });
+    const updatedUser = await User.findByIdAndUpdate(req.params.userId, parseResult.data, {new: true });
     res.status(200).json({ status: "SUCCESS", message: "Updated user by ID", data: updatedUser });
   } catch (error) {
     res.status(500).json({ status: "FAIL", message: "Internal server error", error });
