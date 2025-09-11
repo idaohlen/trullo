@@ -1,4 +1,4 @@
-import express, { type Request, type Response } from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import User, { UserValidationSchema } from "../../models/User";
 
 const router = express.Router();
@@ -8,25 +8,25 @@ router.put("/:userId", updateById);
 router.delete("/:userId", deleteById);
 router.get("/", getAll);
 
-async function getAll(_req: Request, res: Response) {
+async function getAll(_req: Request, res: Response, next: NextFunction) {
   try {
     const users = await User.find({});
     res.status(200).json({ status: "SUCCESS", message: "Retrieved all users", data: users });
   } catch (error) {
-    res.status(500).json({ status: "FAIL", message: "Internal server error", error });
+    next(error);
   }
 }
 
-async function getById(req: Request, res: Response) {
+async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const user = await User.findById(req.params.userId);
     res.status(200).json({ status: "SUCCESS", message: "Retrieved user by ID", data: user });
   } catch (error) {
-    res.status(500).json({ status: "FAIL", message: "Internal server error", error });
+    next(error);
   }
 }
 
-async function updateById(req: Request, res: Response) {
+async function updateById(req: Request, res: Response, next: NextFunction) {
   const UserUpdateSchema = UserValidationSchema.partial();
   const parseResult = UserUpdateSchema.safeParse(req.body);
   
@@ -41,11 +41,11 @@ async function updateById(req: Request, res: Response) {
     const updatedUser = await User.findByIdAndUpdate(req.params.userId, parseResult.data, {new: true });
     res.status(200).json({ status: "SUCCESS", message: "Updated user by ID", data: updatedUser });
   } catch (error) {
-    res.status(500).json({ status: "FAIL", message: "Internal server error", error });
+    next(error);
   }
 }
 
-async function deleteById(req: Request, res: Response) {
+async function deleteById(req: Request, res: Response, next: NextFunction) {
   try {
     const deletedUser = await User.findByIdAndDelete(req.params.userId);
     
@@ -56,7 +56,7 @@ async function deleteById(req: Request, res: Response) {
     
     res.status(200).json({ status: "SUCCESS", message: "Deleted user by ID" });
   } catch (error) {
-    res.status(500).json({ status: "FAIL", message: "Internal server error", error });
+    next(error);
   }
 }
 

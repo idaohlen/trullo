@@ -17,7 +17,7 @@ export function requireAuth(
   // Check for auth header
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    return res.status(401).json({ status: "FAIL", message: "No token provided" });
+    return res.status(401).json({ status: "FAIL", message: "No authorization token provided" });
   }
 
   const token = authHeader.split(" ")[1];

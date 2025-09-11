@@ -1,4 +1,4 @@
-import express, { type Request, type Response } from "express";
+import express, { type Request, type Response, type NextFunction } from "express";
 import User, { UserValidationSchema } from "../../models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -11,7 +11,7 @@ const router = express.Router();
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 
-async function registerUser(req: Request, res: Response) {
+async function registerUser(req: Request, res: Response, next: NextFunction) {
   const parseResult = UserValidationSchema.safeParse({
     ...req.body,
     password: await bcrypt.hash(req.body.password, 10),
@@ -48,13 +48,11 @@ async function registerUser(req: Request, res: Response) {
       .status(200)
       .json({ status: "SUCCESS", message: "Created new user", data: user, token });
   } catch (error) {
-    res
-      .status(500)
-      .json({ status: "FAIL", message: "Internal server error", error });
+    next(error);
   }
 }
 
-async function loginUser(req: Request, res: Response) {
+async function loginUser(req: Request, res: Response, next: NextFunction) {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user || !(await user.comparePassword(req.body.password))) {
@@ -71,9 +69,7 @@ async function loginUser(req: Request, res: Response) {
     });
     res.status(200).json({ status: "SUCCESS", message: "Logged in user", data: user, token });
   } catch (error) {
-    res
-      .status(500)
-      .json({ status: "FAIL", message: "Internal server error", error });
+    next(error);
   }
 }
 
