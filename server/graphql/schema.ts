@@ -35,12 +35,18 @@ export default `#graphql
   }
 
   type Mutation {
-    # USERS
-    addUser(
+    # AUTH
+    registerUser(
       name: String,
       email: String!,
       password: String!,
     ): User
+    loginUser(
+      email: String!,
+      password: String!,
+    ): User
+
+    # USERS
     updateUser(
       id: ID!,
       name: String,

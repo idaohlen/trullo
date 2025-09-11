@@ -1,7 +1,12 @@
 import type { Types } from "mongoose";
 import { GraphQLError } from "graphql";
+import jwt from "jsonwebtoken";
+
 import User, { UserValidationSchema, type User as UserDoc } from "../models/User.js";
 import Task, { TaskValidationSchema, type TaskStatus, type Task as TaskDoc } from "../models/Task.js";
+
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) throw new Error("JWT_SECRET not set");
 
 export default {
   Query: {
@@ -22,38 +27,61 @@ export default {
   },
 
   Mutation: {
-    /* USERS */
-
-    // create
-    addUser: async (
-      _: unknown,
-      args: {
+    /* AUTH */
+    registerUser: async (_: unknown, args: {
         name: string;
         email: string;
         password: string;
-      }
-    ) => {
+      }) => {
+        // Validate input
       const parseResult = UserValidationSchema.safeParse(args);
-
       if (!parseResult.success) {
         throw new GraphQLError("Validation error", {
           extensions: { code: "BAD_USER_INPUT", error: parseResult.error }
         });
       }
 
-      try {
-        return await User.create(parseResult.data);
-      } catch (error: any) {
-        if (error.code === 11000) {
-          throw new GraphQLError("Email already exists", {
-            extensions: { code: "CONFLICT" }
-          });
-        }
-        throw new GraphQLError("Failed to create user", {
-          extensions: { code: "INTERNAL_SERVER_ERROR", error }
+      // Check for existing email
+      const existingUser = await User.findOne({ email: parseResult.data.email });
+      if (existingUser) {
+        throw new GraphQLError("Email already exists", {
+          extensions: { code: "CONFLICT" }
         });
       }
+      // Create user
+      const user = await User.create(parseResult.data);
+
+      const token = jwt.sign({ userId: user._id }, jwtSecret, {
+        expiresIn: "1d",
+      });
+      const { password, ...userData } = user.toObject();
+      return { token, user: userData };
     },
+
+    loginUser: async (_: unknown, { email, password }: {email: string, password: string}) => {
+      // Check for existing user
+      const existingUser = await User.findOne({ email: email });
+        if (!existingUser) {
+        throw new GraphQLError("Wrong credentials", {
+          extensions: { code: "BAD_USER_INPUT" }
+        });
+      }
+      // Check that password is correct
+      const correctPassword = await existingUser.comparePassword(password);
+      if (!correctPassword) {
+        throw new GraphQLError("Wrong credentials", {
+          extensions: { code: "BAD_USER_INPUT" }
+        });
+      }
+
+      const token = jwt.sign({ userId: existingUser._id }, jwtSecret, {
+        expiresIn: "1d",
+      });
+      const { password: _pw, ...userData } = existingUser.toObject();
+      return { token, user: userData };
+    },
+
+    /* USERS */
 
     // update
     updateUser: async (
