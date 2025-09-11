@@ -1,9 +1,9 @@
 import type { Types } from "mongoose";
 import { GraphQLError } from "graphql";
 import jwt from "jsonwebtoken";
-
 import User, { UserValidationSchema, type User as UserDoc } from "../models/User.js";
 import Task, { TaskValidationSchema, type TaskStatus, type Task as TaskDoc } from "../models/Task.js";
+import { requireAuth } from "./utils/requireAuth.js";
 
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) throw new Error("JWT_SECRET not set");
@@ -11,19 +11,19 @@ if (!jwtSecret) throw new Error("JWT_SECRET not set");
 export default {
   Query: {
     /* USERS */
-    user: async (_: unknown, { id }: { id: string }) => {
+    user: requireAuth(async (_: unknown, { id }: { id: string }) => {
       return await User.findById(id);
-    },
-    users: async (_: unknown) => {
+    }),
+    users: requireAuth(async (_: unknown) => {
       return await User.find({});
-    },
+    }),
     /* TASKS */
-    task: async (_: unknown, { id }: { id: string }) => {
+    task: requireAuth(async (_: unknown, { id }: { id: string }) => {
       return await Task.findById(id);
-    },
-    tasks: async (_: unknown) => {
+    }),
+    tasks: requireAuth(async (_: unknown) => {
       return await Task.find({});
-    },
+    }),
   },
 
   Mutation: {
@@ -84,7 +84,7 @@ export default {
     /* USERS */
 
     // update
-    updateUser: async (
+    updateUser: requireAuth(async (
       _: unknown,
       {
         id,
@@ -113,10 +113,10 @@ export default {
       }
 
       return updatedUser;
-    },
+    }),
 
     // delete
-    deleteUser: async (_: unknown, { id }: { id: String }) => {
+    deleteUser: requireAuth(async (_: unknown, { id }: { id: String }) => {
       const deleted = await User.findByIdAndDelete(id);
       if (!deleted) {
         throw new GraphQLError("User not found", {
@@ -124,12 +124,12 @@ export default {
         });
       }
       return true;
-    },
+    }),
 
     /* TASKS */
 
     // create
-    addTask: async (
+    addTask: requireAuth(async (
       _: unknown,
       args: {
         title: string;
@@ -152,10 +152,10 @@ export default {
           extensions: { code: "INTERNAL_SERVER_ERROR", error }
         });
       }
-    },
+    }),
 
     // update
-    updateTask: async (
+    updateTask: requireAuth(async (
       _: unknown,
       {
         id,
@@ -186,10 +186,10 @@ export default {
       }
 
       return updatedTask;
-    },
+    }),
 
     // delete
-    deleteTask: async (_: unknown, { id }: { id: String }) => {
+    deleteTask: requireAuth(async (_: unknown, { id }: { id: String }) => {
       const deleted = await Task.findByIdAndDelete(id);
       if (!deleted) {
         throw new GraphQLError("Task not found", {
@@ -197,7 +197,7 @@ export default {
         });
       }
       return true;
-    },
+    }),
   },
 
   User: {

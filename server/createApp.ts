@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@as-integrations/express5";
+import jwt from "jsonwebtoken";
 import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./db.js";
@@ -39,7 +40,24 @@ export async function createApp(): Promise<Express> {
   app.use("/api", restAPI);
 
   // GraphQL endpoint
-  app.use("/graphql", expressMiddleware(apolloServer));
+  app.use("/graphql", expressMiddleware(apolloServer, {
+    context: async ({ req }: { req: express.Request }) => {
+      const authHeader = req.headers.authorization;
+      let userId: string | null = null;
+      const jwtSecret = process.env.JWT_SECRET;
+      if (authHeader && jwtSecret) {
+        const token = authHeader.split("")[1];
+        try {
+          const payload = jwt.verify(token, jwtSecret);
+          if (typeof payload === "object" && "userId" in payload) {
+            userId = (payload as jwt.JwtPayload & { userId: string }).userId;
+          }
+        } catch {}
+      }
+
+      return { userId }
+    },
+  }));
 
   // Serve static files in production
   if (process.env.NODE_ENV === "production") {
