@@ -21,6 +21,7 @@ export const GET_USER = gql`
     }
   }
 `;
+
 export const GET_TASKS = gql`
   query GetTasks {
     tasks {
@@ -53,6 +54,19 @@ export const GET_TASK = gql`
       createdAt
       updatedAt
       finishedAt
+    }
+  }
+`;
+
+export const LOGIN_USER = gql`
+  mutation LoginUser($email: String!, $password: String!) {
+    loginUser(email: $email, password: $password) {
+      token
+      user {
+        id
+        name
+        email
+      }
     }
   }
 `;

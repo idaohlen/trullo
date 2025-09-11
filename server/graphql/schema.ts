@@ -6,6 +6,11 @@ export default `#graphql
     DONE
   }
 
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
   type User {
     id: ID!
     name: String
@@ -44,7 +49,7 @@ export default `#graphql
     loginUser(
       email: String!,
       password: String!,
-    ): User
+    ): AuthPayload
 
     # USERS
     updateUser(
