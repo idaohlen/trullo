@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import connectDB from "./db.js";
 import schema from "./graphql/schema.js";
 import resolvers from "./graphql/resolvers.js";
+import restAPI from "./REST";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,8 +35,11 @@ export async function createApp(): Promise<Express> {
 
   app.use(express.json());
 
+  // REST endpoint
+  app.use("/api", restAPI);
+
   // GraphQL endpoint
-  app.use("/api", expressMiddleware(apolloServer));
+  app.use("/graphql", expressMiddleware(apolloServer));
 
   // Serve static files in production
   if (process.env.NODE_ENV === "production") {

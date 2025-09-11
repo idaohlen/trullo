@@ -5,7 +5,7 @@ import { provideApolloClient } from "@vue/apollo-composable";
 import "./style.css";
 
 const apolloClient = new ApolloClient({
-  uri: "/api", // Vite proxy forwards to backend
+  uri: "/graphql", // Vite proxy forwards to backend
   cache: new InMemoryCache(),
 });
 
