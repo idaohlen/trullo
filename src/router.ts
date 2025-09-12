@@ -4,17 +4,33 @@ import {
   createWebHistory,
   type RouteRecordRaw,
 } from "vue-router";
-import Dashboard from "./pages/Dashboard.vue";
-import Landing from "./pages/Landing.vue";
 import { useAuth } from "./composables/useAuth";
+import Landing from "./pages/Landing.vue";
+// Layouts
+import DefaultLayout from "./layouts/DefaultLayout.vue";
+import NoLayout from "./layouts/NoLayout.vue";
+// Pages
+import Dashboard from "./pages/Dashboard.vue";
+import NotFound from "./pages/NotFound.vue";
 
 const routes: RouteRecordRaw[] = [
-  { path: "/", name: "Landing", component: Landing },
   {
-    path: "/dashboard",
-    name: "Dashboard",
-    component: Dashboard,
-    meta: { requiresAuth: true },
+    path: "/",
+    component: DefaultLayout,
+    children: [
+      { path: "", name: "Landing", component: Landing },
+      {
+        path: "dashboard",
+        name: "Dashboard",
+        component: Dashboard,
+        meta: { requiresAuth: true },
+      },
+    ],
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    component: NoLayout,
+    children: [{ path: "", name: "NotFound", component: NotFound }],
   },
 ];
 
