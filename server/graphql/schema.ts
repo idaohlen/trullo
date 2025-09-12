@@ -35,6 +35,7 @@ export default `#graphql
   type Query {
     user(id: ID!): User
     users: [User]
+    me: User
     task(id: ID!): Task
     tasks: [Task]
   }

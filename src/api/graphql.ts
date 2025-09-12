@@ -58,6 +58,16 @@ export const GET_TASK = gql`
   }
 `;
 
+export const GET_ME = gql`
+  query Me {
+    me {
+      id
+      name
+      email
+    }
+  }
+`;
+
 export const LOGIN_USER = gql`
   mutation LoginUser($email: String!, $password: String!) {
     loginUser(email: $email, password: $password) {

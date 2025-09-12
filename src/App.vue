@@ -1,8 +1,23 @@
 <template>
   <div class="wrapper bg-teal-700">
-    <header class="header w-full p-3 bg-teal-800 border-teal-900 flex justify-between items-center">
-      <Button variant="secondary" class="font-bold uppercase">Trullo</Button>
-      <Button v-if="isLoggedIn" variant="outline" @click="logout">Logout</Button>
+    <header
+      class="header w-full p-3 bg-teal-800 border-teal-900 flex justify-between items-center"
+    >
+      <router-link to="/">
+        <Button variant="secondary" class="font-bold uppercase">
+          <ClipboardCheck /> Trullo
+        </Button>
+      </router-link>
+      <div v-if="isLoggedIn">
+        <router-link to="/dashboard">
+          <Button variant="link" class="font-bold uppercase text-white">
+            Dashboard
+          </Button>
+        </router-link>
+        <Button variant="outline" @click="logout">
+          Logout
+        </Button>
+      </div>
     </header>
 
     <main class="main p-12 mx-auto w-full h-full max-w-4xl">
@@ -16,24 +31,25 @@
 </template>
 
 <script setup lang="ts">
-
-import { ref } from "vue";
-import { Button } from "@/components/ui/button";
 import { useRouter } from "vue-router";
-import { useMutation } from "@vue/apollo-composable";
+import { useMutation, useApolloClient } from "@vue/apollo-composable";
 import { LOGOUT_USER } from "./api/graphql";
+import { useAuth } from "./composables/useAuth";
+import { Button } from "@/components/ui/button";
+import { ClipboardCheck } from "lucide-vue-next";
 
 const { mutate: logoutMutation } = useMutation(LOGOUT_USER);
+const { isLoggedIn } = useAuth();
 
 const router = useRouter();
-const isLoggedIn = ref(true); // TODO: backend request to check login state (/me query)
+const { client } = useApolloClient();
 
 function logout() {
-  logoutMutation();
-  isLoggedIn.value = false;
-  router.push("/");
+  logoutMutation().then(() => {
+    client.resetStore();
+    router.push("/");
+  });
 }
-
 </script>
 
 <style scoped>

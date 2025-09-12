@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import User, { UserValidationSchema, type User as UserDoc } from "../models/User.js";
 import Task, { TaskValidationSchema, type TaskStatus, type Task as TaskDoc } from "../models/Task.js";
 import { requireAuth } from "./utils/requireAuth.js";
+import { excludePassword } from "./utils/sanitizeUser.js";
 
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) throw new Error("JWT_SECRET not set");
@@ -17,12 +18,18 @@ type GraphQLContext = {
 
 export default {
   Query: {
+    me: requireAuth(async (_: unknown, _args: unknown, context) => {
+      const user = await User.findById(context.userId);
+      return excludePassword(user);
+    }),
     /* USERS */
     user: requireAuth(async (_: unknown, { id }: { id: string }) => {
-      return await User.findById(id);
+      const user = await User.findById(id);
+      return excludePassword(user);
     }),
     users: requireAuth(async (_: unknown) => {
-      return await User.find({});
+      const users = await User.find({});
+      return users.map(excludePassword);
     }),
     /* TASKS */
     task: requireAuth(async (_: unknown, { id }: { id: string }) => {
@@ -45,11 +52,11 @@ export default {
     },
     /* AUTH */
     registerUser: async (_: unknown, args: {
-        name: string;
-        email: string;
-        password: string;
-      }, context: GraphQLContext) => {
-        // Validate input
+      name: string;
+      email: string;
+      password: string;
+    }, context: GraphQLContext) => {
+      // Validate input
       const parseResult = UserValidationSchema.safeParse(args);
       if (!parseResult.success) {
         throw new GraphQLError("Validation error", {
@@ -76,8 +83,7 @@ export default {
         sameSite: "strict",
         maxAge: 24 * 60 * 60 * 1000,
       });
-      const { password, ...userData } = user.toObject();
-      return { token, user: userData };
+      return { token, user: excludePassword(user) };
     },
 
     loginUser: async (
@@ -87,7 +93,7 @@ export default {
     ) => {
       // Check for existing user
       const existingUser = await User.findOne({ email: email });
-        if (!existingUser) {
+      if (!existingUser) {
         throw new GraphQLError("Wrong credentials", {
           extensions: { code: "BAD_USER_INPUT" }
         });
@@ -109,8 +115,7 @@ export default {
         sameSite: "strict",
         maxAge: 24 * 60 * 60 * 1000,
       });
-      const { password: _pw, ...userData } = existingUser.toObject();
-      return { token, user: userData };
+      return { token, user: excludePassword(existingUser) };
     },
 
     /* USERS */

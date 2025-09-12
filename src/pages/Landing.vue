@@ -2,7 +2,12 @@
   <div
     class="flex flex-col justify-center items-center flex-1 text-white gap-8"
   >
-    <h1 class="text-4xl">Welcome to <span class="uppercase font-bold text-md">Trullo!</span></h1>
+    <h1 class="text-4xl">
+      Welcome to<br />
+      <span class="uppercase font-bold text-5xl inline-flex items-center gap-2"
+        ><ClipboardCheck :size="32" /> Trullo!</span
+      >
+    </h1>
 
     <Card class="w-full max-w-xs p-6">
       <Tabs default-value="login" class="w-full">
@@ -12,10 +17,7 @@
         </TabsList>
         <!-- Login -->
         <TabsContent value="login">
-          <form
-            @submit.prevent="handleLogin"
-            class="grid gap-2 w-full"
-          >
+          <form @submit.prevent="handleLogin" class="grid gap-2 w-full">
             <div class="grid gap-2">
               <Label for="email">Email</Label>
               <Input
@@ -43,10 +45,7 @@
         </TabsContent>
         <!-- Register -->
         <TabsContent value="register">
-          <form
-            @submit.prevent="handleRegistration"
-            class="grid gap-4 w-full"
-          >
+          <form @submit.prevent="handleRegistration" class="grid gap-4 w-full">
             <div class="grid gap-2">
               <Label for="name">Name</Label>
               <Input
@@ -84,11 +83,16 @@
         </TabsContent>
       </Tabs>
     </Card>
-    <div v-if="error" class="text-red-300 text-sm mt-2">
-      {{ error }}
-    </div>
+    <Alert v-if="error" variant="destructive" class="max-w-xs">
+      <AlertCircle class="w-4 h-4" />
+      <AlertTitle>Invalid input</AlertTitle>
+      <AlertDescription>
+        {{ error }}
+      </AlertDescription>
+    </Alert>
   </div>
 </template>
+
 <script setup lang="ts">
 import { ref } from "vue";
 import { z } from "zod";
@@ -99,7 +103,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClipboardCheck, AlertCircle } from "lucide-vue-next";
 
 const name = ref("");
 const email = ref("");
@@ -114,14 +120,26 @@ const LoginSchema = z.object({
 const RegistrationSchema = z.object({
   name: z.string(),
   email: z.email(),
-  password: z.string()
+  password: z
+    .string()
     .min(8, "Password needs to be at least 8 characters")
     .regex(/\d/, "Password must contain at least one number")
-    .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password must contain at least one special character"),
+    .regex(
+      /[!@#$%^&*(),.?":{}|<>]/,
+      "Password must contain at least one special character"
+    ),
 });
 
-const { mutate: loginUser, onDone: onLoginDone, onError: onLoginError } = useMutation(LOGIN_USER);
-const { mutate: registerUser, onDone: onRegistrationDone, onError: onRegistrationError } = useMutation(REGISTER_USER);
+const {
+  mutate: loginUser,
+  onDone: onLoginDone,
+  onError: onLoginError,
+} = useMutation(LOGIN_USER);
+const {
+  mutate: registerUser,
+  onDone: onRegistrationDone,
+  onError: onRegistrationError,
+} = useMutation(REGISTER_USER);
 
 function handleLogin() {
   error.value = "";
@@ -176,7 +194,11 @@ onRegistrationDone(({ data }) => {
   }
 });
 
-onLoginError((e) => { error.value = e.message || "Login failed" });
+onLoginError((e) => {
+  error.value = e.message || "Login failed";
+});
 
-onRegistrationError((e) => { error.value = e.message || "Registration failed" });
+onRegistrationError((e) => {
+  error.value = e.message || "Registration failed";
+});
 </script>
