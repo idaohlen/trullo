@@ -1,4 +1,5 @@
 <template>
+  <LoaderOverlay v-if="loading" text="Logging in..." />
   <div
     class="flex flex-col justify-center items-center flex-1 text-white gap-8"
   >
@@ -103,6 +104,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import LoaderOverlay from "@/components/LoaderOverlay.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClipboardCheck, AlertCircle } from "lucide-vue-next";
@@ -111,6 +113,8 @@ import { useAuth } from "../composables/useAuth";
 const { refetch } = useAuth();
 const router = useRouter();
 
+
+const loading = ref(false);
 const name = ref("");
 const email = ref("");
 const password = ref("");
@@ -147,6 +151,8 @@ const {
 
 function handleLogin() {
   error.value = "";
+  loading.value = true;
+
   const result = LoginSchema.safeParse({
     email: email.value,
     password: password.value,
@@ -162,6 +168,8 @@ function handleLogin() {
 
 function handleRegistration() {
   error.value = "";
+  loading.value = true;
+
   const result = RegistrationSchema.safeParse({
     name: name.value,
     email: email.value,
@@ -187,6 +195,7 @@ onLoginDone(async ({ data }) => {
   } else {
     error.value = "Login failed";
   }
+  loading.value = false;
 });
 
 onRegistrationDone(async ({ data }) => {
@@ -196,13 +205,16 @@ onRegistrationDone(async ({ data }) => {
   } else {
     error.value = "Registration failed";
   }
+  loading.value = false;
 });
 
 onLoginError((e) => {
   error.value = e.message || "Login failed";
+  loading.value = false;
 });
 
 onRegistrationError((e) => {
   error.value = e.message || "Registration failed";
+  loading.value = false;
 });
 </script>

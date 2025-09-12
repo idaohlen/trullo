@@ -1,10 +1,10 @@
-import { watch } from "vue";
 import {
   createRouter,
   createWebHistory,
   type RouteRecordRaw,
 } from "vue-router";
-import { useAuth } from "./composables/useAuth";
+import { useApolloClient } from "@vue/apollo-composable";
+import { gql } from "@apollo/client/core";
 import Landing from "./pages/Landing.vue";
 // Layouts
 import DefaultLayout from "./layouts/DefaultLayout.vue";
@@ -39,26 +39,24 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, _from, next) => {
-  const { isLoggedIn, loading } = useAuth();
-
-  if (loading.value) {
-    const stop = watch(loading, (val) => {
-      if (!val) {
-        stop();
-        if (to.meta.requiresAuth && !isLoggedIn.value) {
-          next("/");
-        } else {
-          next();
-        }
+router.beforeEach(async (to, _from, next) => {
+  if (to.meta.requiresAuth) {
+    const client = useApolloClient().client;
+    try {
+      const { data } = await client.query({
+        query: gql`query Me { me { id } }`,
+        fetchPolicy: "network-only"
+      });
+      if (data.me) {
+        next();
+      } else {
+        next("/");
       }
-    });
-  } else {
-    if (to.meta.requiresAuth && !isLoggedIn.value) {
+    } catch {
       next("/");
-    } else {
-      next();
     }
+  } else {
+    next();
   }
 });
 
