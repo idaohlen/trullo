@@ -4,9 +4,9 @@
   >
     <h1 class="text-4xl">
       Welcome to<br />
-      <span class="uppercase font-bold text-5xl inline-flex items-center gap-2"
-        ><ClipboardCheck :size="32" /> Trullo!</span
-      >
+      <span class="uppercase font-bold text-5xl inline-flex items-center gap-2">
+        <ClipboardCheck :size="32" /> Trullo!
+        </span>
     </h1>
 
     <Card class="w-full max-w-xs p-6">
@@ -97,8 +97,8 @@
 import { ref } from "vue";
 import { z } from "zod";
 import { useMutation } from "@vue/apollo-composable";
+import { useRouter } from "vue-router";
 import { LOGIN_USER, REGISTER_USER } from "../api/graphql";
-
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -106,6 +106,10 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClipboardCheck, AlertCircle } from "lucide-vue-next";
+import { useAuth } from "../composables/useAuth";
+
+const { refetch } = useAuth();
+const router = useRouter();
 
 const name = ref("");
 const email = ref("");
@@ -176,19 +180,19 @@ function handleRegistration() {
   });
 }
 
-onLoginDone(({ data }) => {
+onLoginDone(async ({ data }) => {
   if (data?.loginUser?.token) {
-    localStorage.setItem("token", data.loginUser.token);
-    window.location.href = "/dashboard";
+    await refetch();
+    router.push("/dashboard");
   } else {
     error.value = "Login failed";
   }
 });
 
-onRegistrationDone(({ data }) => {
+onRegistrationDone(async ({ data }) => {
   if (data?.registerUser?.token) {
-    localStorage.setItem("token", data.registerUser.token);
-    window.location.href = "/dashboard";
+    await refetch();
+    router.push("/dashboard");
   } else {
     error.value = "Registration failed";
   }

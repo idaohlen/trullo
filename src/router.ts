@@ -1,3 +1,4 @@
+import { watch } from "vue";
 import {
   createRouter,
   createWebHistory,
@@ -9,7 +10,12 @@ import { useAuth } from "./composables/useAuth";
 
 const routes: RouteRecordRaw[] = [
   { path: "/", name: "Landing", component: Landing },
-  { path: "/dashboard", name: "Dashboard", component: Dashboard, meta: { requiresAuth: true } },
+  {
+    path: "/dashboard",
+    name: "Dashboard",
+    component: Dashboard,
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({
@@ -18,11 +24,25 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
-  const { isLoggedIn } = useAuth();
-  if (to.meta.requiresAuth && !isLoggedIn.value) {
-    next("/");
+  const { isLoggedIn, loading } = useAuth();
+
+  if (loading.value) {
+    const stop = watch(loading, (val) => {
+      if (!val) {
+        stop();
+        if (to.meta.requiresAuth && !isLoggedIn.value) {
+          next("/");
+        } else {
+          next();
+        }
+      }
+    });
   } else {
-    next();
+    if (to.meta.requiresAuth && !isLoggedIn.value) {
+      next("/");
+    } else {
+      next();
+    }
   }
 });
 
