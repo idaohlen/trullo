@@ -45,7 +45,7 @@ export default `#graphql
       name: String,
       email: String!,
       password: String!,
-    ): User
+    ): AuthPayload
     loginUser(
       email: String!,
       password: String!,

@@ -2,10 +2,10 @@
   <div
     class="flex flex-col justify-center items-center flex-1 text-white gap-8"
   >
-    <h1 class="text-4xl">Welcome to Trullo!</h1>
+    <h1 class="text-4xl">Welcome to <span class="uppercase font-bold text-md">Trullo!</span></h1>
 
     <Card class="w-full max-w-xs p-6">
-      <Tabs default-value="account" class="w-full">
+      <Tabs default-value="login" class="w-full">
         <TabsList class="grid w-full grid-cols-2">
           <TabsTrigger value="login">Login</TabsTrigger>
           <TabsTrigger value="register">Register</TabsTrigger>
@@ -14,25 +14,27 @@
         <TabsContent value="login">
           <form
             @submit.prevent="handleLogin"
-            class="flex flex-col gap-2 w-full"
+            class="grid gap-2 w-full"
           >
-            <div class="flex flex-col gap-2">
+            <div class="grid gap-2">
               <Label for="email">Email</Label>
               <Input
                 v-model="email"
                 id="email"
                 type="email"
                 placeholder="Email"
+                autocomplete="email"
                 class="bg-white text-black"
               />
             </div>
-            <div class="flex flex-col gap-2">
+            <div class="grid gap-2">
               <Label for="password">Password</Label>
               <Input
                 v-model="password"
                 id="password"
                 type="password"
                 placeholder="Password"
+                autocomplete="current-password"
                 class="bg-white text-black"
               />
             </div>
@@ -43,9 +45,9 @@
         <TabsContent value="register">
           <form
             @submit.prevent="handleRegistration"
-            class="flex flex-col gap-2 w-full"
+            class="grid gap-4 w-full"
           >
-            <div class="flex flex-col gap-2">
+            <div class="grid gap-2">
               <Label for="name">Name</Label>
               <Input
                 v-model="name"
@@ -55,23 +57,25 @@
                 class="bg-white text-black"
               />
             </div>
-            <div class="flex flex-col gap-2">
+            <div class="grid gap-2">
               <Label for="email">Email</Label>
               <Input
                 v-model="email"
                 id="email"
                 type="email"
                 placeholder="Email"
+                autocomplete="username"
                 class="bg-white text-black"
               />
             </div>
-            <div class="flex flex-col gap-2">
+            <div class="grid gap-2">
               <Label for="password">Password</Label>
               <Input
                 v-model="password"
                 id="password"
                 type="password"
                 placeholder="Password"
+                autocomplete="new-password"
                 class="bg-white text-black"
               />
             </div>
@@ -89,7 +93,7 @@
 import { ref } from "vue";
 import { z } from "zod";
 import { useMutation } from "@vue/apollo-composable";
-import { LOGIN_USER } from "../api/graphql";
+import { LOGIN_USER, REGISTER_USER } from "../api/graphql";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -107,7 +111,17 @@ const LoginSchema = z.object({
   password: z.string().min(1, { message: "Password required" }),
 });
 
-const { mutate: loginUser, onDone, onError } = useMutation(LOGIN_USER);
+const RegistrationSchema = z.object({
+  name: z.string(),
+  email: z.email(),
+  password: z.string()
+    .min(8, "Password needs to be at least 8 characters")
+    .regex(/\d/, "Password must contain at least one number")
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password must contain at least one special character"),
+});
+
+const { mutate: loginUser, onDone: onLoginDone, onError: onLoginError } = useMutation(LOGIN_USER);
+const { mutate: registerUser, onDone: onRegistrationDone, onError: onRegistrationError } = useMutation(REGISTER_USER);
 
 function handleLogin() {
   error.value = "";
@@ -117,16 +131,34 @@ function handleLogin() {
   });
   if (!result.success) {
     error.value = JSON.parse(result.error.message)
-      .map((e) => e.message)
+      .map((e: { message: string }) => e.message)
       .join(", ");
     return;
   }
   loginUser({ email: email.value.trim(), password: password.value.trim() });
 }
 
-function handleRegistration() {}
+function handleRegistration() {
+  error.value = "";
+  const result = RegistrationSchema.safeParse({
+    name: name.value,
+    email: email.value,
+    password: password.value,
+  });
+  if (!result.success) {
+    error.value = JSON.parse(result.error.message)
+      .map((e: { message: string }) => e.message)
+      .join(", ");
+    return;
+  }
+  registerUser({
+    name: name.value.trim(),
+    email: email.value.trim(),
+    password: password.value.trim(),
+  });
+}
 
-onDone(({ data }) => {
+onLoginDone(({ data }) => {
   if (data?.loginUser?.token) {
     localStorage.setItem("token", data.loginUser.token);
     window.location.href = "/dashboard";
@@ -135,7 +167,16 @@ onDone(({ data }) => {
   }
 });
 
-onError((e) => {
-  error.value = e.message || "Login failed";
+onRegistrationDone(({ data }) => {
+  if (data?.registerUser?.token) {
+    localStorage.setItem("token", data.registerUser.token);
+    window.location.href = "/dashboard";
+  } else {
+    error.value = "Registration failed";
+  }
 });
+
+onLoginError((e) => { error.value = e.message || "Login failed" });
+
+onRegistrationError((e) => { error.value = e.message || "Registration failed" });
 </script>

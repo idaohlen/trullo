@@ -5,7 +5,7 @@
       <Card class="p-2">
         <div v-if="loading">Loading...</div>
         <div v-else-if="error">Error: {{ error.message }}</div>
-        <div v-else class="grid grid-cols-2">
+        <div v-else class="grid grid-cols-2 gap-2">
           <Card
             v-for="task in (result?.tasks ?? []) as Task[]"
             :key="task.id as string"
@@ -30,8 +30,9 @@ import { useQuery } from "@vue/apollo-composable";
 import { GET_TASKS } from "../api/graphql";
 import type { Task, GetTasksResult } from "../../server/graphql/types";
 
-import { Card } from "../components/ui/card";
-import Badge from "../components/ui/badge/Badge.vue";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const { result, loading, error } = useQuery<GetTasksResult>(GET_TASKS);
 </script>

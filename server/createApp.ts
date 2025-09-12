@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 import connectDB from "./db.js";
 import schema from "./graphql/schema.js";
 import resolvers from "./graphql/resolvers.js";
-import restAPI from "./REST";
+import restAPI from "./rest";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,7 +46,7 @@ export async function createApp(): Promise<Express> {
       let userId: string | null = null;
       const jwtSecret = process.env.JWT_SECRET;
       if (authHeader && jwtSecret) {
-        const token = authHeader.split("")[1];
+        const token = authHeader.split(" ")[1];
         try {
           const payload = jwt.verify(token, jwtSecret);
           if (typeof payload === "object" && "userId" in payload) {
