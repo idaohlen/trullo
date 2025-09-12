@@ -4,6 +4,7 @@ import { expressMiddleware } from "@as-integrations/express5";
 import jwt from "jsonwebtoken";
 import path from "path";
 import { fileURLToPath } from "url";
+import cookieParser from "cookie-parser";
 import connectDB from "./db.js";
 import schema from "./graphql/schema.js";
 import resolvers from "./graphql/resolvers.js";
@@ -35,18 +36,18 @@ export async function createApp(): Promise<Express> {
   await apolloServer.start();
 
   app.use(express.json());
+  app.use(cookieParser());
 
   // REST endpoint
   app.use("/api", restAPI);
 
   // GraphQL endpoint
   app.use("/graphql", expressMiddleware(apolloServer, {
-    context: async ({ req }: { req: express.Request }) => {
-      const authHeader = req.headers.authorization;
+    context: async ({ req, res }) => {
       let userId: string | null = null;
       const jwtSecret = process.env.JWT_SECRET;
-      if (authHeader && jwtSecret) {
-        const token = authHeader.split(" ")[1];
+      const token = req.cookies?.token;
+      if (token && jwtSecret) {
         try {
           const payload = jwt.verify(token, jwtSecret);
           if (typeof payload === "object" && "userId" in payload) {
@@ -54,8 +55,7 @@ export async function createApp(): Promise<Express> {
           }
         } catch {}
       }
-
-      return { userId }
+      return { userId, req, res }
     },
   }));
 

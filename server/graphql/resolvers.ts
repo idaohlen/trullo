@@ -1,3 +1,4 @@
+import type { Request, Response } from "express";
 import type { Types } from "mongoose";
 import { GraphQLError } from "graphql";
 import jwt from "jsonwebtoken";
@@ -7,6 +8,12 @@ import { requireAuth } from "./utils/requireAuth.js";
 
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) throw new Error("JWT_SECRET not set");
+
+type GraphQLContext = {
+  req: Request;
+  res: Response;
+  userId?: string | null;
+};
 
 export default {
   Query: {
@@ -27,12 +34,21 @@ export default {
   },
 
   Mutation: {
+    logout: async (_: unknown, _args: unknown, context: GraphQLContext) => {
+      context.res.cookie("token", "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 0,
+      });
+      return true;
+    },
     /* AUTH */
     registerUser: async (_: unknown, args: {
         name: string;
         email: string;
         password: string;
-      }) => {
+      }, context: GraphQLContext) => {
         // Validate input
       const parseResult = UserValidationSchema.safeParse(args);
       if (!parseResult.success) {
@@ -54,11 +70,21 @@ export default {
       const token = jwt.sign({ userId: user._id }, jwtSecret, {
         expiresIn: "1d",
       });
+      context.res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
       const { password, ...userData } = user.toObject();
       return { token, user: userData };
     },
 
-    loginUser: async (_: unknown, { email, password }: {email: string, password: string}) => {
+    loginUser: async (
+      _: unknown,
+      { email, password }: {email: string, password: string},
+      context: GraphQLContext
+    ) => {
       // Check for existing user
       const existingUser = await User.findOne({ email: email });
         if (!existingUser) {
@@ -76,6 +102,12 @@ export default {
 
       const token = jwt.sign({ userId: existingUser._id }, jwtSecret, {
         expiresIn: "1d",
+      });
+      context.res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
       });
       const { password: _pw, ...userData } = existingUser.toObject();
       return { token, user: userData };

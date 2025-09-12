@@ -20,12 +20,16 @@
 import { ref } from "vue";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "vue-router";
+import { useMutation } from "@vue/apollo-composable";
+import { LOGOUT_USER } from "./api/graphql";
+
+const { mutate: logoutMutation } = useMutation(LOGOUT_USER);
 
 const router = useRouter();
-const isLoggedIn = ref(!!localStorage.getItem("token"));
+const isLoggedIn = ref(true); // TODO: backend request to check login state (/me query)
 
 function logout() {
-  localStorage.removeItem("token");
+  logoutMutation();
   isLoggedIn.value = false;
   router.push("/");
 }

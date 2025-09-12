@@ -58,6 +58,7 @@ export default `#graphql
       email: String,
       password: String,
     ): User
+    logout: Boolean
     deleteUser(id: ID!): Boolean
 
     # TASKS
