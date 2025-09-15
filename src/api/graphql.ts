@@ -58,6 +58,15 @@ export const GET_TASK = gql`
   }
 `;
 
+export const ADD_TASK = gql`
+  mutation AddTask ($title: String!, $description: String) {
+    addTask(title: $title, description: $description) {
+      title
+      description
+    }
+  }
+`;
+
 export const GET_ME = gql`
   query Me {
     me {

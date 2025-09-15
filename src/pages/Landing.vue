@@ -113,12 +113,12 @@ import { useAuth } from "../composables/useAuth";
 const { refetch } = useAuth();
 const router = useRouter();
 
-
 const loading = ref(false);
+const error = ref("");
+
 const name = ref("");
 const email = ref("");
 const password = ref("");
-const error = ref("");
 
 const LoginSchema = z.object({
   email: z.email({ message: "Invalid email" }),
