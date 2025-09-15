@@ -6,8 +6,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 import connectDB from "./db.js";
-import schema from "./graphql/schema.js";
-import resolvers from "./graphql/resolvers.js";
+import typeDefs from "./graphql/typeDefs/index.js";
+import resolvers from "./graphql/resolvers/index.js";
 import restAPI from "./rest";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,7 +21,7 @@ export async function createApp(): Promise<Express> {
 
   // Create Apollo Server
   const apolloServer = new ApolloServer({
-    typeDefs: schema,
+    typeDefs: typeDefs,
     resolvers,
     introspection: process.env.NODE_ENV !== "production",
     formatError: (err) => {

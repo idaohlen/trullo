@@ -16,10 +16,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(__dirname, "src"),
-      "@server": resolve(__dirname, "server"),
-      "@rest": resolve(__dirname, "server/rest"),
-      "@models": resolve(__dirname, "server/models"),
-      "@graphql": resolve(__dirname, "server/graphql"),
     }
   }
 });

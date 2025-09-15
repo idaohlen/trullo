@@ -13,9 +13,9 @@
     "baseUrl": "./server",
     "paths": {
       "@/*": ["./*"],
-      "@models/*": ["./models/*"],
-      "@rest/*": ["./rest/*"],
-      "@graphql/*": ["./graphql/*"]
+      "@/models/*": ["./models/*"],
+      "@/rest/*": ["./rest/*"],
+      "@/graphql/*": ["./graphql/*"]
     }
   },
   "include": [

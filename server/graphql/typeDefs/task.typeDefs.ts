@@ -6,20 +6,6 @@ export default `#graphql
     DONE
   }
 
-  type AuthPayload {
-    token: String!
-    user: User!
-  }
-
-  type User {
-    id: ID!
-    name: String
-    email: String!
-    password: String!
-    createdAt: String
-    updatedAt: String
-  }
-
   type Task {
     id: ID!
     title: String!
@@ -33,36 +19,11 @@ export default `#graphql
   }
 
   type Query {
-    user(id: ID!): User
-    users: [User]
-    me: User
     task(id: ID!): Task
     tasks: [Task]
   }
 
   type Mutation {
-    # AUTH
-    registerUser(
-      name: String,
-      email: String!,
-      password: String!,
-    ): AuthPayload
-    loginUser(
-      email: String!,
-      password: String!,
-    ): AuthPayload
-
-    # USERS
-    updateUser(
-      id: ID!,
-      name: String,
-      email: String,
-      password: String,
-    ): User
-    logout: Boolean
-    deleteUser(id: ID!): Boolean
-
-    # TASKS
     addTask(
       title: String!,
       description: String,
