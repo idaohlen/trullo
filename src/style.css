@@ -122,7 +122,10 @@
   }
 }
 
-
 #app {
   min-height: 100vh;
+}
+
+.task-done {
+  @apply bg-emerald-100 border-emerald-400;
 }

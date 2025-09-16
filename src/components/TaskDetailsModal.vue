@@ -4,6 +4,7 @@
       <DialogHeader>
         <DialogTitle>{{ task.title }}</DialogTitle>
       </DialogHeader>
+      <div v-if="task.finishedAt" class="text-sm text-gray-500">Finished at {{ task.finishedAt }}</div>
       <Card class="p-2 rounded-sm" v-if="task.description">
         <vue-markdown :source="task.description" />
       </Card>

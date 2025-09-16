@@ -93,7 +93,7 @@ const props = defineProps({
   },
 });
 
-const isEdit = computed(() => !!props.task);
+const isEdit = computed(() => props.task !== null && typeof props.task?.id === 'string' && props.task.id.length > 0);
 
 const loading = ref(false);
 const error = ref("");

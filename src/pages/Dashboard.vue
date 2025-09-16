@@ -10,6 +10,7 @@
         v-for="task in (result?.tasks ?? []) as Task[]"
         :key="task.id as string"
         class="p-0 rounded-sm"
+        :class="{ 'task-done': !!task.finishedAt }"
       >
         <div class="p-3">
           <div class="flex justify-between">

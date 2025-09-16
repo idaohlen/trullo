@@ -19,6 +19,7 @@ type UpdateInput = {
   title?: string;
   description?: string;
   status?: TaskStatus;
+  finishedAt?: string;
   assignedTo?: Types.ObjectId | string;
 };
 
@@ -27,6 +28,7 @@ class Tasks {
     id: (doc: TaskDoc) => String(doc._id),
     createdAt: (doc: TaskDoc) => doc.createdAt ? doc.createdAt.toISOString() : null,
     updatedAt: (doc: TaskDoc) => doc.updatedAt ? doc.updatedAt.toISOString() : null,
+    finishedAt: (doc: TaskDoc) => doc.finishedAt ? doc.finishedAt.toISOString() : null,
     user: async (doc: TaskDoc, _args: unknown) => {
       const user = await User.findById(doc.assignedTo);
       return user ? excludePassword(user) : null;
@@ -102,8 +104,13 @@ class Tasks {
       });
     }
 
+    const update: Record<string, any> = { ...parseResult.data };
+
+    if (input.status === "DONE") update.finishedAt = new Date();
+    else update.finishedAt = null;
+
     try {
-      const updatedTask = await Task.findByIdAndUpdate(id, parseResult.data, {
+      const updatedTask = await Task.findByIdAndUpdate(id, update, {
         runValidation: true,
         new: true,
       });

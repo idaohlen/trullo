@@ -14,6 +14,7 @@ export interface Task {
   user: User;
   createdAt: string;
   updatedAt: string;
+  finishedAt: string;
 }
 
 export interface GetTasksResult {

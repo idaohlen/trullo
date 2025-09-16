@@ -24,8 +24,8 @@
       <router-view />
     </main>
 
-    <footer class="footer p-3 bg-teal-900 border-teal-950 text-white">
-      Footer
+    <footer class="footer p-3 bg-teal-900 border-teal-950 text-white/50 text-center text-sm">
+      Trullo 2025
     </footer>
   </div>
 </template>
