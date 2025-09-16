@@ -21,6 +21,7 @@ export default `#graphql
       email: String,
       password: String,
     ): User
+    
     deleteUser(id: ID!): Boolean
   }
 `;

@@ -35,6 +35,7 @@
     :isOpen="isTaskDetailsOpen"
     :onClose="toggleTaskDetailsModal"
     :task="currentTask"
+    :onTaskDeleted="refetchTasks"
   />
 </template>
 <script setup lang="ts">

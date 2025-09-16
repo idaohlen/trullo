@@ -14,6 +14,20 @@
           <Label for="description">Description</Label>
           <Textarea v-model="description" placeholder="Enter a task description here. Use markdown for formatting." id="description" />
         </div>
+
+        <Select v-model="status">
+          <SelectTrigger class="w-[180px]">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem :value="statusOption" v-for="statusOption in statusValuesData.taskStatusValues || []" :key="statusOption">
+                {{ statusOption }}
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
         <div class="flex justify-end gap-2 mt-4">
           <Button type="button" variant="outline" @Click="handleClose">Cancel</Button>
           <Button type="submit">Create task</Button>
@@ -25,14 +39,23 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useMutation } from "@vue/apollo-composable";
+import { useQuery, useMutation } from "@vue/apollo-composable";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ADD_TASK } from "../api/graphql";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ADD_TASK, GET_TASK_STATUS_VALUES } from "../api/graphql";
 import Button from "./ui/button/Button.vue";
 import Input from "./ui/input/Input.vue";
 import Textarea from "./ui/textarea/Textarea.vue";
@@ -43,8 +66,11 @@ const props = defineProps(["isOpen", "onClose", "onTaskCreated"]);
 
 const title = ref("");
 const description = ref("");
+const status = ref("");
 const loading = ref(false);
 const error = ref("");
+
+const { result: statusValuesData } = useQuery(GET_TASK_STATUS_VALUES);
 
 const {
   mutate: addTask,
@@ -55,25 +81,33 @@ const {
 function handleClose() {
   title.value = "";
   description.value = "";
+  status.value = "";
   props.onClose();
 }
 
-function handleCreateTask() {
+async function handleCreateTask() {
   error.value = "";
   loading.value = true;
-
-  addTask({
-    title: title.value.trim(),
-    description: description.value,
-  });
-
-  props.onTaskCreated();
+  try {
+    await addTask({
+      title: title.value.trim(),
+      description: description.value,
+      status: status.value || undefined,
+    });
+    props.onTaskCreated();
+  } catch (e: any) {
+    error.value = e?.message || "Failed to create task.";
+    console.error("Create task error:", e);
+  } finally {
+    loading.value = false;
+  }
 }
 
 onDone(async ({ data }) => {
   loading.value = false;
   title.value = "";
   description.value = "";
+  status.value = "";
   handleClose();
 });
 </script>

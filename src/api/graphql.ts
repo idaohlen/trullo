@@ -22,6 +22,22 @@ export const GET_USER = gql`
   }
 `;
 
+export const GET_ME = gql`
+  query Me {
+    me {
+      id
+      name
+      email
+    }
+  }
+`;
+
+export const GET_TASK_STATUS_VALUES = gql`
+  query GetTaskStatusValues {
+    taskStatusValues
+  }
+`;
+
 export const GET_TASKS = gql`
   query GetTasks {
     tasks {
@@ -59,21 +75,54 @@ export const GET_TASK = gql`
 `;
 
 export const ADD_TASK = gql`
-  mutation AddTask ($title: String!, $description: String) {
-    addTask(title: $title, description: $description) {
+  mutation AddTask($title: String!, $description: String, $status: TaskStatus, $assignedTo: ID) {
+    addTask(
+      title: $title
+      description: $description
+      status: $status
+      assignedTo: $assignedTo
+    ) {
       title
       description
+      status
+      assignedTo
     }
   }
 `;
 
-export const GET_ME = gql`
-  query Me {
-    me {
+export const UPDATE_TASK = gql`
+  mutation UpdateTask(
+    $id: ID!
+    $title: String
+    $description: String
+    $status: TaskStatus
+    $assignedTo: ID
+  ) {
+    updateTask(
+      id: $id
+      title: $title
+      description: $description
+      status: $status
+      assignedTo: $assignedTo
+    ) {
       id
-      name
-      email
+      title
+      description
+      status
+      assignedTo
+      user {
+        name
+      }
+      createdAt
+      updatedAt
+      finishedAt
     }
+  }
+`;
+
+export const DELETE_TASK = gql`
+  mutation DeleteTask($id: ID!) {
+    deleteTask(id: $id)
   }
 `;
 

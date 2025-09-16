@@ -21,14 +21,17 @@ export default `#graphql
   type Query {
     task(id: ID!): Task
     tasks: [Task]
+    taskStatusValues: [TaskStatus!]!
   }
 
   type Mutation {
     addTask(
       title: String!,
       description: String,
+      status: TaskStatus,
       assignedTo: ID,
     ): Task
+
     updateTask(
       id: ID!,
       title: String,
@@ -36,6 +39,7 @@ export default `#graphql
       status: TaskStatus,
       assignedTo: ID,
     ): Task
+
     deleteTask(id: ID!): Boolean
   }
 `;

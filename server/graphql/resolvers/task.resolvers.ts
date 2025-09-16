@@ -29,6 +29,12 @@ class Tasks {
     user: async (doc: TaskDoc, _args: unknown) => await User.findById(doc.assignedTo)
   };
 
+  static statusValues = ["TO_DO", "IN_PROGRESS", "BLOCKED", "DONE"];
+  
+  async getStatusValues() {
+    return Tasks.statusValues;
+  }
+
   async getMany(_: unknown) {
     try {
       return await Task.find();
