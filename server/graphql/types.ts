@@ -5,7 +5,3 @@ export interface Task extends Omit<MongooseTask, "_id"> {
   id: string;
   user?: User | null;
 }
-
-export interface GetTasksResult {
-  tasks: Task[];
-}

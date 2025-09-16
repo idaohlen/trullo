@@ -6,6 +6,7 @@ import Task, {
   type Task as TaskDoc
 } from "../../models/Task.js";
 import User from "../../models/User.js";
+import { excludePassword } from "../utils/sanitizeUser.js";
 
 type CreateInput = {
   title: string;
@@ -26,7 +27,10 @@ class Tasks {
     id: (doc: TaskDoc) => String(doc._id),
     createdAt: (doc: TaskDoc) => doc.createdAt ? doc.createdAt.toISOString() : null,
     updatedAt: (doc: TaskDoc) => doc.updatedAt ? doc.updatedAt.toISOString() : null,
-    user: async (doc: TaskDoc, _args: unknown) => await User.findById(doc.assignedTo)
+    user: async (doc: TaskDoc, _args: unknown) => {
+      const user = await User.findById(doc.assignedTo);
+      return user ? excludePassword(user) : null;
+    }
   };
 
   static statusValues = ["TO_DO", "IN_PROGRESS", "BLOCKED", "DONE"];

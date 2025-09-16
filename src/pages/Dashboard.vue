@@ -1,6 +1,6 @@
 <template>
   <div class="mb-3 text-right">
-    <Button @click="toggleCreateTaskModal">Add task</Button>
+    <Button @click="openCreateTaskModal">Add task</Button>
   </div>
   <Card class="p-2">
     <div v-if="loading">Loading...</div>
@@ -13,7 +13,7 @@
       >
         <div class="p-3">
           <div class="flex justify-between">
-            <div class="font-bold hover:underline underline-offset-4 hover:cursor-pointer" @click="toggleTaskDetailsModal(task)">{{ task.title }}</div>
+            <div class="font-bold hover:underline underline-offset-4 hover:cursor-pointer" @click="openTaskDetailsModal(task)">{{ task.title }}</div>
             <Badge>{{ task.status }}</Badge>
           </div>
           <div v-if="task.description" class="text-xs truncate text-gray-400">
@@ -27,15 +27,17 @@
 
   <CreateTaskModal
     :isOpen="isCreateTaskOpen"
-    :onClose="toggleCreateTaskModal"
-    :onTaskCreated="refetchTasks"
+    :onClose="closeCreateTaskModal"
+    :onTaskSaved="refetchTasks"
+    :task="currentTask"
   />
 
   <TaskDetailsModal
     :isOpen="isTaskDetailsOpen"
-    :onClose="toggleTaskDetailsModal"
+    :onClose="closeTaskDetailsModal"
     :task="currentTask"
     :onTaskDeleted="refetchTasks"
+    :onOpenEdit="handleEdit"
   />
 </template>
 <script setup lang="ts">
@@ -44,7 +46,8 @@ import { useQuery } from "@vue/apollo-composable";
 import MarkdownIt from "markdown-it";
 
 import { GET_TASKS } from "../api/graphql";
-import type { Task, GetTasksResult } from "../../server/graphql/types";
+import type { GetTasksResult } from "@/types";
+import type { Task } from "@/types";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -65,14 +68,32 @@ function refetchTasks() {
   refetch();
 }
 
-function toggleCreateTaskModal() {
-  isCreateTaskOpen.value = !isCreateTaskOpen.value;
+function openCreateTaskModal(task: Task | null = null) {
+  currentTask.value = task;
+  isCreateTaskOpen.value = true;
 }
 
-function toggleTaskDetailsModal(task: Task) {
+function closeCreateTaskModal() {
+  isCreateTaskOpen.value = false;
+  if (!isTaskDetailsOpen.value) currentTask.value = null;
+}
+
+function openTaskDetailsModal(task: Task) {
   currentTask.value = task;
-  console.log(currentTask.value)
-  isTaskDetailsOpen.value = !isTaskDetailsOpen.value;
+  isTaskDetailsOpen.value = true;
+}
+
+function closeTaskDetailsModal() {
+  isTaskDetailsOpen.value = false;
+  if (!isCreateTaskOpen.value) currentTask.value = null;
+}
+
+function handleEdit(task: Task) {
+  closeTaskDetailsModal();
+  // Wait for the details modal to close before opening the edit modal
+  setTimeout(() => {
+    openCreateTaskModal(task);
+  }, 0);
 }
 
 function getFirstLine(markdown: string): string {

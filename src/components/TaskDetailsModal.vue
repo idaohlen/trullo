@@ -4,12 +4,12 @@
       <DialogHeader>
         <DialogTitle>{{ task.title }}</DialogTitle>
       </DialogHeader>
-      <Card class="p-2 rounded-sm">
+      <Card class="p-2 rounded-sm" v-if="task.description">
         <vue-markdown :source="task.description" />
       </Card>
       <DialogFooter>
         <Button variant="outline" class="text-red-500" @click="handleDelete"><Trash /> Delete</Button>
-        <Button variant="outline"><Edit /> Edit</Button>
+        <Button variant="outline" @click="handleEdit"><Edit /> Edit</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
@@ -31,7 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Edit, Trash } from "lucide-vue-next";
 
-const props = defineProps(["task", "isOpen", "onClose", "onTaskDeleted"]);
+const props = defineProps(["task", "isOpen", "onClose", "onTaskDeleted", "onOpenEdit"]);
 
 const { mutate: deleteTask } = useMutation(DELETE_TASK);
 
@@ -42,6 +42,11 @@ function handleClose() {
 async function handleDelete() {
   await deleteTask({ id: props.task.id });
   props.onTaskDeleted();
+  props.onClose();
+}
+
+async function handleEdit() {
+  props.onOpenEdit(props.task);
   props.onClose();
 }
 
