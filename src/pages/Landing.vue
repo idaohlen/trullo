@@ -126,7 +126,7 @@ const LoginSchema = z.object({
 });
 
 const RegistrationSchema = z.object({
-  name: z.string(),
+  name: z.string().min(3, "Name is required"),
   email: z.email(),
   password: z
     .string()

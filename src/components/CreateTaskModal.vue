@@ -6,6 +6,9 @@
         <DialogTitle>{{
           isEdit ? "Edit task" : "Create new task"
         }}</DialogTitle>
+        <DialogDescription class="sr-only">
+          {{ isEdit ? "Edit task form" : "Create new task form" }}
+        </DialogDescription>
       </DialogHeader>
       <form @submit.prevent="handleSaveTask" class="grid gap-3">
         <div class="grid gap-2">
@@ -106,6 +109,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,

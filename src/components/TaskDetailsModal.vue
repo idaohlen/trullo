@@ -4,6 +4,9 @@
       <DialogHeader class="flex flex-row justify-between items-center mr-4">
         <DialogTitle>{{ task.title }}</DialogTitle>
         <StatusBadge :data="task.status" />
+        <DialogDescription class="sr-only">
+          Task details for {{ task.title }}
+        </DialogDescription>
       </DialogHeader>
       <div
         v-if="task.finishedAt"

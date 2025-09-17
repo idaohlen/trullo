@@ -3,7 +3,7 @@ import * as z from "zod";
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
-  name: { type: String },
+  name: { type: String, required: true },
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
 }, { timestamps: true });
@@ -21,7 +21,7 @@ userSchema.methods.comparePassword = async function (password: string) {
 };
 
 export const UserValidationSchema = z.object({ 
-  name: z.string(),
+  name: z.string().min(3, "Name is required"),
   email: z.email(),
   password: z.string()
     .min(8, "Password needs to be at least 8 characters")

@@ -90,13 +90,16 @@ async function registerUser(
         extensions: { code: "BAD_USER_INPUT", error: parseResult.error },
       });
     }
+
     const existingUser = await User.findOne({ email: parseResult.data.email });
     if (existingUser) {
       throw new GraphQLError("Email already exists", {
         extensions: { code: "CONFLICT" },
       });
     }
+
     const user = await User.create(parseResult.data);
+    
     const token = jwt.sign({ userId: user._id }, getJwtSecret(), {
       expiresIn: "1d",
     });
