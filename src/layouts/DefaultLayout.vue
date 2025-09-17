@@ -14,6 +14,11 @@
             Dashboard
           </Button>
         </router-link>
+        <router-link to="/my-profile">
+          <Button variant="link" class="font-bold uppercase text-white">
+            My Profile
+          </Button>
+        </router-link>
         <Button variant="outline" @click="logout">
           Logout
         </Button>

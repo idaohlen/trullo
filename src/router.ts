@@ -12,6 +12,7 @@ import NoLayout from "./layouts/NoLayout.vue";
 // Pages
 import Dashboard from "./pages/Dashboard.vue";
 import NotFound from "./pages/NotFound.vue";
+import MyProfile from "./pages/MyProfile.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -23,6 +24,12 @@ const routes: RouteRecordRaw[] = [
         path: "dashboard",
         name: "Dashboard",
         component: Dashboard,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: "my-profile",
+        name: "MyProfile",
+        component: MyProfile,
         meta: { requiresAuth: true },
       },
     ],

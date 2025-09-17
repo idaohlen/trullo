@@ -1,5 +1,5 @@
 <template>
-  <LoaderOverlay v-if="loading" text="Creating task..." />
+  <LoaderOverlay v-if="loading" text="Loading..." />
   <Dialog :open="isOpen" @update:open="handleClose">
     <DialogContent>
       <DialogHeader>
@@ -21,22 +21,68 @@
           />
         </div>
 
-        <Select v-model="status">
-          <SelectTrigger class="w-[180px]">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem
-                :value="statusOption"
-                v-for="statusOption in statusValuesData.taskStatusValues || []"
-                :key="statusOption"
+        <div class="flex gap-2">
+          <Select v-model="status">
+            <SelectTrigger class="w-[180px]">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem
+                  :value="statusOption"
+                  v-for="statusOption in statusValuesData.taskStatusValues ||
+                  []"
+                  :key="statusOption"
+                >
+                  {{ statusOption }}
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+
+          <Popover v-model:open="userPopoverOpen">
+            <PopoverTrigger as-child>
+              <Button
+                type="button"
+                variant="outline"
+                class="justify-between flex-1"
               >
-                {{ statusOption }}
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+              <div class="truncate">{{ selectedUser?.email ?? "Choose user" }}</div>
+                <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent class="w-[300px] p-0">
+              <Command>
+                <div>
+                  <CommandInput
+                    v-model="userSearch"
+                    placeholder="Search users..."
+                    class="flex-1"
+                  />
+                </div>
+                <CommandList>
+                  <CommandEmpty>No user found.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      v-for="user in filteredUsers"
+                      :key="user.id"
+                      :value="user.id"
+                      @select="selectUser(user.id)"
+                      class="px-3 py-2"
+                      :class="{ 'bg-accent': user.id === assignedUserId }"
+                    >
+                      {{ user.email }}
+                      <Check
+                        v-if="user.id === assignedUserId"
+                        class="ml-auto h-4 w-4"
+                      />
+                    </CommandItem>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
 
         <div class="flex justify-end gap-2 mt-4">
           <Button type="button" variant="outline" @Click="handleClose"
@@ -54,7 +100,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, type PropType } from "vue";
 import { useQuery, useMutation } from "@vue/apollo-composable";
-import type { Task } from "@/types";
+import type { Task, User } from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -66,16 +112,36 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
+  // SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ADD_TASK, UPDATE_TASK, GET_TASK_STATUS_VALUES } from "../api/graphql";
-import Button from "./ui/button/Button.vue";
-import Input from "./ui/input/Input.vue";
-import Textarea from "./ui/textarea/Textarea.vue";
-import Label from "./ui/label/Label.vue";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+
+import {
+  ADD_TASK,
+  UPDATE_TASK,
+  GET_TASK_STATUS_VALUES,
+  GET_USERS,
+} from "../api/graphql";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import { Label } from "./ui/label";
 import LoaderOverlay from "@/components/LoaderOverlay.vue";
+import { Check, ChevronsUpDown } from "lucide-vue-next";
 
 const props = defineProps({
   isOpen: Boolean,
@@ -93,7 +159,12 @@ const props = defineProps({
   },
 });
 
-const isEdit = computed(() => props.task !== null && typeof props.task?.id === 'string' && props.task.id.length > 0);
+const isEdit = computed(
+  () =>
+    props.task !== null &&
+    typeof props.task?.id === "string" &&
+    props.task.id.length > 0
+);
 
 const loading = ref(false);
 const error = ref("");
@@ -102,7 +173,29 @@ const error = ref("");
 const title = ref("");
 const description = ref("");
 const status = ref("");
+const assignedUserId = ref<string | null>(null);
+const userPopoverOpen = ref(false);
+const userSearch = ref("");
 
+const selectedUser = computed(() => {
+  const users = usersData.value?.users ?? [];
+  return users.find((u: User) => u.id === assignedUserId.value) || null;
+});
+
+const filteredUsers = computed(() => {
+  const users = usersData.value?.users ?? [];
+  if (!userSearch.value) return users;
+  return users.filter((u: User) =>
+    u.email.toLowerCase().includes(userSearch.value.toLowerCase())
+  );
+});
+
+function selectUser(id: string) {
+  assignedUserId.value = id;
+  userPopoverOpen.value = false;
+}
+
+const { result: usersData } = useQuery(GET_USERS);
 const { result: statusValuesData } = useQuery(GET_TASK_STATUS_VALUES);
 const { mutate: addTask } = useMutation(ADD_TASK);
 const { mutate: updateTask } = useMutation(UPDATE_TASK);
@@ -114,10 +207,12 @@ watch(
       title.value = task.title || "";
       description.value = task.description || "";
       status.value = task.status || "";
+      assignedUserId.value = task.user?.id ? String(task.user.id) : null;
     } else {
       title.value = "";
       description.value = "";
       status.value = "";
+      assignedUserId.value = null;
     }
   },
   { immediate: true }
@@ -134,18 +229,21 @@ async function handleSaveTask() {
   error.value = "";
   loading.value = true;
   try {
+    const assignedTo = assignedUserId.value || undefined;
     if (isEdit.value && props.task) {
       await updateTask({
         id: props.task.id,
         title: title.value.trim(),
         description: description.value,
         status: status.value || undefined,
+        assignedTo,
       });
     } else {
       await addTask({
         title: title.value.trim(),
         description: description.value,
         status: status.value || undefined,
+        assignedTo,
       });
     }
 
@@ -153,6 +251,7 @@ async function handleSaveTask() {
     title.value = "";
     description.value = "";
     status.value = "";
+    assignedUserId.value = null;
 
     handleClose();
     props.onTaskSaved();

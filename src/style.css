@@ -127,5 +127,5 @@
 }
 
 .task-done {
-  @apply bg-emerald-100 border-emerald-400;
+  @apply opacity-40;
 }

@@ -45,7 +45,6 @@ class Tasks {
     try {
       return await Task.find();
     } catch (error) {
-      console.error("getById error:", error);
       throw error instanceof GraphQLError
         ? error
         : new GraphQLError("Internal error", {

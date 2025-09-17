@@ -47,7 +47,9 @@ export const GET_TASKS = gql`
       status
       assignedTo
       user {
+        id
         name
+        email
       }
       createdAt
       updatedAt
@@ -65,7 +67,9 @@ export const GET_TASK = gql`
       status
       assignedTo
       user {
+        id
         name
+        email
       }
       createdAt
       updatedAt

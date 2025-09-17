@@ -4,6 +4,7 @@ import App from "./App.vue";
 import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client/core";
 import { provideApolloClient } from "@vue/apollo-composable";
 import router from "./router";
+import { createPinia } from "pinia";
 import "./style.css";
 
 
@@ -22,4 +23,5 @@ provideApolloClient(apolloClient);
 
 const app = createApp(App);
 app.use(router);
+app.use(createPinia());
 app.mount("#app");

@@ -1,15 +1,39 @@
 <template>
   <Dialog :open="isOpen" @update:open="handleClose">
     <DialogContent v-if="task">
-      <DialogHeader>
+      <DialogHeader class="flex flex-row justify-between items-center mr-4">
         <DialogTitle>{{ task.title }}</DialogTitle>
+        <StatusBadge :data="task.status" />
       </DialogHeader>
-      <div v-if="task.finishedAt" class="text-sm text-gray-500">Finished at {{ task.finishedAt }}</div>
-      <Card class="p-2 rounded-sm" v-if="task.description">
+      <div
+        v-if="task.finishedAt"
+        class="flex gap-2 items-center text-sm text-green-600"
+      >
+        <Check class="size-4" />
+        <div class="text-[.8rem]">
+          Finished
+          <span v-if="task.user"
+            >by <span class="font-semibold">{{ task.user.name }}</span></span
+          >
+          at
+          <Badge class="bg-green-100 text-green-700">{{
+            format(new Date(task.finishedAt), "ii MMM yyyy HH:mm")
+          }}</Badge>
+        </div>
+      </div>
+      <Card class="p-3 text-sm rounded-sm" v-if="task.description">
         <vue-markdown :source="task.description" />
       </Card>
+      <div v-if="task.user" class="text-[.8rem]">
+        Assigned to
+        <Badge variant="outline" class="bg-white mt-2 ml-1">{{
+          task.user.name
+        }}</Badge>
+      </div>
       <DialogFooter>
-        <Button variant="outline" class="text-red-500" @click="handleDelete"><Trash /> Delete</Button>
+        <Button variant="outline" class="text-red-500" @click="handleDelete"
+          ><Trash /> Delete</Button
+        >
         <Button variant="outline" @click="handleEdit"><Edit /> Edit</Button>
       </DialogFooter>
     </DialogContent>
@@ -19,6 +43,7 @@
 <script setup lang="ts">
 import { useMutation } from "@vue/apollo-composable";
 import VueMarkdown from "vue-markdown-render";
+import { format } from "date-fns";
 import { DELETE_TASK } from "../api/graphql";
 import {
   Dialog,
@@ -30,9 +55,17 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Edit, Trash } from "lucide-vue-next";
+import { Check, Edit, Trash } from "lucide-vue-next";
+import { Badge } from "./ui/badge";
+import StatusBadge from "./StatusBadge.vue";
 
-const props = defineProps(["task", "isOpen", "onClose", "onTaskDeleted", "onOpenEdit"]);
+const props = defineProps([
+  "task",
+  "isOpen",
+  "onClose",
+  "onTaskDeleted",
+  "onOpenEdit",
+]);
 
 const { mutate: deleteTask } = useMutation(DELETE_TASK);
 
@@ -50,5 +83,4 @@ async function handleEdit() {
   props.onOpenEdit(props.task);
   props.onClose();
 }
-
 </script>

@@ -18,10 +18,9 @@ class Users {
 
   async getMany(_: unknown) {
     try {
-      const users = await User.find({});
+      const users = await User.find();
       return users.map(excludePassword);
     } catch (error) {
-      console.error("getById error:", error);
       throw error instanceof GraphQLError
         ? error
         : new GraphQLError("Internal error", {

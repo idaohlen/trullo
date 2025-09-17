@@ -14,13 +14,23 @@
       >
         <div class="p-3">
           <div class="flex justify-between">
-            <div class="font-bold hover:underline underline-offset-4 hover:cursor-pointer" @click="openTaskDetailsModal(task)">{{ task.title }}</div>
-            <Badge>{{ task.status }}</Badge>
+            <div
+              class="font-bold hover:underline underline-offset-4 hover:cursor-pointer"
+              @click="openTaskDetailsModal(task)"
+            >
+              {{ task.title }}
+            </div>
+          <StatusBadge :data="task.status" />
           </div>
           <div v-if="task.description" class="text-xs truncate text-gray-400">
             {{ getFirstLine(task.description) }}
           </div>
-          <div v-if="task.user" class="text-sm">{{ task.user }}</div>
+          <Badge
+            v-if="task.user"
+            variant="outline"
+            class="text-[.7rem] bg-white mt-2"
+            >{{ task.user.name }}</Badge
+          >
         </div>
       </Card>
     </div>
@@ -47,7 +57,7 @@ import { useQuery } from "@vue/apollo-composable";
 import MarkdownIt from "markdown-it";
 
 import { GET_TASKS } from "../api/graphql";
-import type { GetTasksResult } from "@/types";
+import type { GetTasksResult, TaskStatus } from "@/types";
 import type { Task } from "@/types";
 
 import { Card } from "@/components/ui/card";
@@ -56,6 +66,7 @@ import { Badge } from "@/components/ui/badge";
 
 import CreateTaskModal from "@/components/CreateTaskModal.vue";
 import TaskDetailsModal from "@/components/TaskDetailsModal.vue";
+import StatusBadge from "@/components/StatusBadge.vue";
 
 const md = new MarkdownIt();
 
@@ -104,6 +115,6 @@ function getFirstLine(markdown: string): string {
   const div = document.createElement("div");
   div.innerHTML = html;
   // Get the text content and split by line
-  return div.textContent?.split('\n')[0] ?? "";
+  return div.textContent?.split("\n")[0] ?? "";
 }
 </script>
