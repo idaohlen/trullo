@@ -28,6 +28,7 @@ export const GET_ME = gql`
       id
       name
       email
+      role
     }
   }
 `;

@@ -19,6 +19,13 @@
             My Profile
           </Button>
         </router-link>
+        <div v-if="isAdmin" class="contents">
+        <router-link to="/admin">
+          <Button variant="link" class="font-bold uppercase text-white">
+            Admin
+          </Button>
+        </router-link>
+        </div>
         <Button variant="outline" @click="logout">
           Logout
         </Button>
@@ -44,7 +51,7 @@ import { useAuth } from "../composables/useAuth";
 import { Button } from "@/components/ui/button";
 
 const { mutate: logoutMutation } = useMutation(LOGOUT_USER);
-const { isLoggedIn } = useAuth();
+const { isLoggedIn, isAdmin } = useAuth();
 
 const router = useRouter();
 const { client } = useApolloClient();

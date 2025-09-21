@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql";
 import { excludePassword } from "../utils/sanitizeUser.js";
-import User, { UserValidationSchema, type User as UserDoc } from "../../models/User.js";
+import User, { type Role, UserValidationSchema, type User as UserDoc } from "../../models/User.js";
 
 type UpdateInput = {
   id: string;
@@ -15,6 +15,12 @@ class Users {
     createdAt: (doc: UserDoc) => doc.createdAt ? doc.createdAt.toISOString() : null,
     updatedAt: (doc: UserDoc) => doc.updatedAt ? doc.updatedAt.toISOString() : null,
   };
+
+  static roles = ["USER", "ADMIN"];
+  
+  async getRoles() {
+    return Users.roles;
+  }
 
   async getMany(_: unknown) {
     try {
@@ -77,6 +83,29 @@ class Users {
       }
 
       return excludePassword(updatedUser);
+    } catch (error) {
+      console.error("update error:", error);
+      throw error instanceof GraphQLError
+        ? error
+        : new GraphQLError("Internal error", {
+            extensions: { code: "INTERNAL_SERVER_ERROR" },
+          });
+    }
+  }
+
+  async updateRole(_: unknown, { id, role }: { id: String, role: Role }) {
+    try {
+      const updatedUser = await User.findByIdAndUpdate(id, { role }, {
+        new: true,
+      });
+
+      if (!updatedUser) {
+        throw new GraphQLError("User not found", {
+          extensions: { code: "NOT_FOUND", userId: id },
+        });
+      }
+
+      return updatedUser;
     } catch (error) {
       console.error("update error:", error);
       throw error instanceof GraphQLError

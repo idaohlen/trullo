@@ -5,14 +5,15 @@ import {
 } from "vue-router";
 import { useApolloClient } from "@vue/apollo-composable";
 import { gql } from "@apollo/client/core";
-import Landing from "./pages/Landing.vue";
 // Layouts
 import DefaultLayout from "./layouts/DefaultLayout.vue";
 import NoLayout from "./layouts/NoLayout.vue";
 // Pages
+import Landing from "./pages/Landing.vue";
 import Dashboard from "./pages/Dashboard.vue";
 import NotFound from "./pages/NotFound.vue";
 import MyProfile from "./pages/MyProfile.vue";
+import Admin from "./pages/Admin.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -31,6 +32,12 @@ const routes: RouteRecordRaw[] = [
         name: "MyProfile",
         component: MyProfile,
         meta: { requiresAuth: true },
+      },
+      {
+        path: "admin",
+        name: "Admin",
+        component: Admin,
+        meta: { requiresAuth: true, requiresAdmin: true },
       },
     ],
   },
@@ -51,19 +58,38 @@ router.beforeEach(async (to, _from, next) => {
     const client = useApolloClient().client;
     try {
       const { data } = await client.query({
-        query: gql`query Me { me { id } }`,
-        fetchPolicy: "network-only"
+        query: gql`
+          query Me {
+            me {
+              id
+              name
+              email
+              role
+            }
+          }
+        `,
+        fetchPolicy: "network-only",
       });
-      if (data.me) {
-        next();
-      } else {
+
+      // Check user data
+      if (!data.me) {
         next("/");
+        return;
       }
+
+      // Check if admin role is required
+      if (to.meta.requiresAdmin && data.me.role !== "ADMIN") {
+        next("/"); // Redirect to home if not admin
+        return;
+      }
+      
+      next(); // Allow access
+
     } catch {
-      next("/");
+      next("/"); // Authentication failed
     }
   } else {
-    next();
+    next(); // No auth required
   }
 });
 

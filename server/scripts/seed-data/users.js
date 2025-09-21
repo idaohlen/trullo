@@ -1,6 +1,6 @@
 export default [
   { name: "Regular User", email: "user@trello.com", password: "Password1!" },
-  { name: "Admin User", email: "admin@trello.com", password: "Password1!" },
+  { name: "Admin User", email: "admin@trello.com", password: "Password1!", role: "ADMIN" },
   { name: "Freddie Mercury", email: "freddie@queen.com", password: "QueenR0cks!" },
   { name: "Brian May", email: "brian@queen.com", password: "RedSpecial#1" },
   { name: "Roger Taylor", email: "roger@queen.com", password: "DrumKing!9" },

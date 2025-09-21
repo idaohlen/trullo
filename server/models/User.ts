@@ -2,10 +2,14 @@ import mongoose, { type InferSchemaType, type Document } from "mongoose";
 import * as z from "zod";
 import bcrypt from "bcryptjs";
 
+export const ROLES = ["USER", "ADMIN"] as const;
+export type Role = typeof ROLES[number];
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
+  role: { type: String, enum: ROLES, default: "USER" },
 }, { timestamps: true });
 
 // Hash password before saving

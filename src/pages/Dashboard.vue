@@ -57,7 +57,7 @@ import { useQuery } from "@vue/apollo-composable";
 import MarkdownIt from "markdown-it";
 
 import { GET_TASKS } from "../api/graphql";
-import type { GetTasksResult, TaskStatus } from "@/types";
+import type { GetTasksResult } from "@/types";
 import type { Task } from "@/types";
 
 import { Card } from "@/components/ui/card";

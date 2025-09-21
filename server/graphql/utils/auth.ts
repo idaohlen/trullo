@@ -8,6 +8,7 @@ export type GraphQLContext = {
   req: Request;
   res: Response;
   userId?: string | null;
+  role?: string | null;
 };
 
 type RegistrationInput = {
@@ -43,6 +44,7 @@ async function loginUser(
   context: GraphQLContext
 ) {
   try {
+    // Check if user email exists
     const existingUser = await User.findOne({ email: email });
     if (!existingUser) {
       throw new GraphQLError("Wrong credentials", {
@@ -50,6 +52,7 @@ async function loginUser(
       });
     }
 
+    // Compare if password is correct
     const correctPassword = await existingUser.comparePassword(password);
     if (!correctPassword) {
       throw new GraphQLError("Wrong credentials", {
@@ -57,9 +60,14 @@ async function loginUser(
       });
     }
 
-    const token = jwt.sign({ userId: existingUser._id }, getJwtSecret(), {
-      expiresIn: "1d",
-    });
+    // Create token
+    const token = jwt.sign(
+      { userId: existingUser._id, role: existingUser.role },
+      getJwtSecret(),
+      {
+        expiresIn: "1d",
+      }
+    );
 
     context.res.cookie("token", token, {
       httpOnly: true,
@@ -67,6 +75,8 @@ async function loginUser(
       sameSite: "strict",
       maxAge: 24 * 60 * 60 * 1000,
     });
+
+    // Return token and user (excluding password)
     return { token, user: excludePassword(existingUser) };
   } catch (error) {
     console.error("loginUser error:", error);
@@ -84,6 +94,7 @@ async function registerUser(
   context: GraphQLContext
 ) {
   try {
+    // Validate user input
     const parseResult = UserValidationSchema.safeParse(input);
     if (!parseResult.success) {
       throw new GraphQLError("Validation error", {
@@ -91,6 +102,7 @@ async function registerUser(
       });
     }
 
+    // Check for conflicting email
     const existingUser = await User.findOne({ email: parseResult.data.email });
     if (existingUser) {
       throw new GraphQLError("Email already exists", {
@@ -98,17 +110,25 @@ async function registerUser(
       });
     }
 
+    // Create user
     const user = await User.create(parseResult.data);
-    
-    const token = jwt.sign({ userId: user._id }, getJwtSecret(), {
-      expiresIn: "1d",
-    });
+
+    // Create token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      getJwtSecret(),
+      {
+        expiresIn: "1d",
+      }
+    );
     context.res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 24 * 60 * 60 * 1000,
     });
+
+    // Return token and user (excluding password)
     return { token, user: excludePassword(user) };
   } catch (error) {
     console.error("registerUser error:", error);

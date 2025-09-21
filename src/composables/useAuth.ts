@@ -5,6 +5,7 @@ import { computed } from "vue";
 export function useAuth() {
   const { result, loading, error, refetch } = useQuery(GET_ME);
   const isLoggedIn = computed(() => !!result.value?.me && !error.value);
+  const isAdmin = computed(() => result.value?.me.role === "ADMIN" && !error.value);
 
-  return { user: result, isLoggedIn, loading, error, refetch };
+  return { user: result, isLoggedIn, isAdmin, loading, error, refetch };
 }

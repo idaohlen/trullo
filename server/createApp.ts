@@ -45,17 +45,20 @@ export async function createApp(): Promise<Express> {
   app.use("/graphql", expressMiddleware(apolloServer, {
     context: async ({ req, res }) => {
       let userId: string | null = null;
+      let role: string | null = null;
       const jwtSecret = process.env.JWT_SECRET;
       const token = req.cookies?.token;
       if (token && jwtSecret) {
         try {
           const payload = jwt.verify(token, jwtSecret);
           if (typeof payload === "object" && "userId" in payload) {
-            userId = (payload as jwt.JwtPayload & { userId: string }).userId;
+            const jwtPayload = payload as jwt.JwtPayload & { userId: string; role?: string };
+            userId = jwtPayload.userId;
+            role = jwtPayload.role || null;
           }
         } catch {}
       }
-      return { userId, req, res }
+      return { userId, role, req, res }
     },
   }));
 

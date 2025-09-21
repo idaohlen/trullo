@@ -1,9 +1,15 @@
 export default `#graphql
+  enum Role {
+    USER
+    ADMIN
+  }
+
   type User {
     id: ID!
-    name: String
+    name: String!
     email: String!
     password: String!
+    role: Role!
     createdAt: String
     updatedAt: String
   }
@@ -12,6 +18,7 @@ export default `#graphql
     user(id: ID!): User
     users: [User]
     me: User
+    roles: [Role]
   }
 
   type Mutation {
@@ -20,6 +27,11 @@ export default `#graphql
       name: String,
       email: String,
       password: String,
+    ): User
+
+    updateUserRole(
+      userId: ID!
+      role: Role!
     ): User
     
     deleteUser(id: ID!): Boolean

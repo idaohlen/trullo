@@ -1,5 +1,4 @@
-import { type GraphQLFieldResolver } from "graphql";
-import { requireAuth } from "../utils/requireAuth.js";
+import { requireAuth, requireAdmin } from "../utils/requireAuth.js";
 import { userResolvers as user, userTypeResolvers } from "./user.resolvers.js";
 import { taskResolvers as task, taskTypeResolvers } from "./task.resolvers.js";
 import { auth } from "../utils/auth.js";
@@ -8,37 +7,23 @@ import { auth } from "../utils/auth.js";
 // Example usage:
 // someResolver: compose(requireAuth, requireAdmin, logAccess)(actualResolver),
 
-type Resolver = GraphQLFieldResolver<any, any, any>;
-type Middleware = (next: Resolver) => Resolver;
+type AsyncResolver = (parent: any, args: any, context: any, info: any) => Promise<any>;
+type Middleware = (next: AsyncResolver) => AsyncResolver;
 
 function compose(
   ...middlewares: Middleware[]
-): (resolver: Resolver) => Resolver {
-  return (resolver: Resolver) =>
+): (resolver: AsyncResolver) => AsyncResolver {
+  return (resolver: AsyncResolver) =>
     middlewares.reduceRight((next, mw) => mw(next), resolver);
 }
-
-// type Middleware<TSource = any, TContext = any, TArgs = any, TResult = any> =
-//   (next: GraphQLFieldResolver<TSource, TContext, TArgs>) => GraphQLFieldResolver<TSource, TContext, TArgs>;
-
-// function compose<TSource = any, TContext = any, TArgs = any, TResult = any>(
-//   ...middlewares: Array<Middleware<TSource, TContext, TArgs, TResult>>
-// ): (resolver: GraphQLFieldResolver<TSource, TContext, TArgs, TResult>) => GraphQLFieldResolver<TSource, TContext, TArgs, TResult> {
-//   return middlewares.reduceRight(
-//     (next, mw) => mw(next)
-//   );
-// }
-
-// function compose(...middlewares) {
-//   return middlewares.reduceRight((next, mw) => mw(next));
-// }
 
 export default {
   Query: {
     /* USERS */
-    users: requireAuth(user.getMany),
+    users: compose(requireAuth, requireAdmin)(user.getMany),
     user: requireAuth(user.getById),
     me: requireAuth(user.me),
+    roles: user.getRoles.bind(task),
     /* TASKS */
     tasks: requireAuth(task.getMany),
     task: requireAuth(task.getById),
@@ -54,6 +39,7 @@ export default {
     /* USERS */
     updateUser: requireAuth(user.update),
     deleteUser: requireAuth(user.delete),
+    updateUserRole: compose(requireAuth, requireAdmin)(user.updateRole),
 
     /* TASKS */
     addTask: requireAuth(task.create),
