@@ -8,7 +8,7 @@ export default `#graphql
     id: ID!
     name: String!
     email: String!
-    password: String!
+    # password: String!
     role: Role!
     createdAt: String
     updatedAt: String
@@ -23,10 +23,11 @@ export default `#graphql
 
   type Mutation {
     updateUser(
-      id: ID!,
-      name: String,
-      email: String,
-      password: String,
+      id: ID!
+      name: String
+      email: String
+      password: String
+      currentPassword: String
     ): User
 
     updateUserRole(

@@ -1,4 +1,5 @@
 import { GraphQLError } from "graphql";
+import bcrypt from "bcryptjs";
 import { excludePassword } from "../utils/sanitizeUser.js";
 import User, { type Role, UserValidationSchema, type User as UserDoc } from "../../models/User.js";
 
@@ -7,6 +8,7 @@ type UpdateInput = {
   name?: string;
   email?: string;
   password?: string;
+  currentPassword?: string;
 };
 
 class Users {
@@ -61,7 +63,7 @@ class Users {
     return excludePassword(user);
   }
 
-  async update(_: unknown, { id, ...input }: UpdateInput) {
+  async update(_: unknown, { id, currentPassword, ...input }: UpdateInput, context: { userId: string; role?: string }) {
     const UserUpdateSchema = UserValidationSchema.partial();
     const parseResult = UserUpdateSchema.safeParse(input);
 
@@ -72,13 +74,51 @@ class Users {
     }
 
     try {
-      const updatedUser = await User.findByIdAndUpdate(id, parseResult.data, {
+      // Get the current user to compare values
+      const user = await User.findById(id);
+      if (!user) {
+        throw new GraphQLError("User not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      // Check if this is a self-update (user updating their own profile)
+      const isSelfUpdate = context.userId === id;
+      
+      // Check if email or password are actually changing
+      const emailChanged = input.email !== undefined && input.email !== user.email;
+      const passwordChanged = input.password !== undefined && input.password.trim() !== "";
+      
+      // If user is updating their own email or password, require current password
+      if (isSelfUpdate && (emailChanged || passwordChanged)) {
+        if (!currentPassword) {
+          throw new GraphQLError("Current password is required when changing email or password", {
+            extensions: { code: "BAD_USER_INPUT" },
+          });
+        }
+
+        // Verify current password
+        const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+        if (!isCurrentPasswordValid) {
+          throw new GraphQLError("Current password is incorrect", {
+            extensions: { code: "BAD_USER_INPUT" },
+          });
+        }
+      }
+
+      // Hash password if provided
+      const updateData = { ...parseResult.data };
+      if (updateData.password) {
+        updateData.password = await bcrypt.hash(updateData.password, 10);
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(id, updateData, {
         new: true,
       });
 
       if (!updatedUser) {
-        throw new GraphQLError("User not found", {
-          extensions: { code: "NOT_FOUND", userId: id },
+        throw new GraphQLError("Failed to update user", {
+          extensions: { code: "INTERNAL_SERVER_ERROR" },
         });
       }
 
@@ -91,9 +131,7 @@ class Users {
             extensions: { code: "INTERNAL_SERVER_ERROR" },
           });
     }
-  }
-
-  async updateRole(_: unknown, { id, role }: { id: String, role: Role }) {
+  }  async updateRole(_: unknown, { id, role }: { id: String, role: Role }) {
     try {
       const updatedUser = await User.findByIdAndUpdate(id, { role }, {
         new: true,

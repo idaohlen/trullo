@@ -25,31 +25,52 @@
       <template v-for="user in users" :key="user.id">
         <div class="border-b border-gray-100 font-semibold text-sm">{{ user.name }}</div>
         <div class="border-b border-gray-100 text-gray-500 text-sm">{{ user.email }}</div>
-        <div class="border-b border-gray-100">
-          <Button variant="destructive" size="sm">
-            <Trash class="h-4 w-4" /> Delete
+        <div class=" flex gap-2 pb-2">
+          <Button variant="destructive" size="icon" class="size-7">
+            <Trash class="size-4" />
+          </Button>
+          <Button variant="outline" size="icon" class="size-7" @click="handleEditUser(user)">
+            <Edit class="size-4" />
           </Button>
         </div>
       </template>
     </div>
   </Card>
+
+  <EditUserModal
+    :isOpen="isEditUserOpen"
+    :onClose="closeEditUser"
+    :user="currentUser"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import { useQuery } from "@vue/apollo-composable";
 import { GET_USERS } from "@/api/graphql";
 import type { User } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Trash } from "lucide-vue-next";
+import { AlertCircle, Edit, Trash } from "lucide-vue-next";
+import EditUserModal from "@/components/EditUserModal.vue";
 
-const { result, loading, error, refetch } = useQuery<{ users: User[] }>(
+const { result, loading, error } = useQuery<{ users: User[] }>(
   GET_USERS
 );
 
 const users = computed(() => result.value?.users ?? []);
 
-console.log(useQuery<{ users: User[] }>(GET_USERS));
+const currentUser = ref<User | null>(null);
+const isEditUserOpen = ref(false);
+
+function handleEditUser(user: User) {
+  currentUser.value = user;
+  isEditUserOpen.value = true;
+}
+
+function closeEditUser() {
+  isEditUserOpen.value = false;
+}
+
 </script>

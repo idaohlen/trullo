@@ -33,6 +33,29 @@ export const GET_ME = gql`
   }
 `;
 
+export const UPDATE_USER = gql`
+  mutation UpdateUser(
+    $id: ID!
+    $name: String
+    $email: String
+    $password: String
+    $currentPassword: String
+  ) {
+    updateUser(
+      id: $id
+      name: $name
+      email: $email
+      password: $password
+      currentPassword: $currentPassword
+    ) {
+      id
+      name
+      email
+      role
+    }
+  }
+`;
+
 export const GET_TASK_STATUS_VALUES = gql`
   query GetTaskStatusValues {
     taskStatusValues

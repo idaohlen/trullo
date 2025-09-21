@@ -1,4 +1,4 @@
-import { requireAuth, requireAdmin } from "../utils/requireAuth.js";
+import { requireAuth, requireAdmin, requireSelfOrAdmin } from "../utils/requireAuth.js";
 import { userResolvers as user, userTypeResolvers } from "./user.resolvers.js";
 import { taskResolvers as task, taskTypeResolvers } from "./task.resolvers.js";
 import { auth } from "../utils/auth.js";
@@ -20,7 +20,7 @@ function compose(
 export default {
   Query: {
     /* USERS */
-    users: compose(requireAuth, requireAdmin)(user.getMany),
+    users: requireAdmin(user.getMany),
     user: requireAuth(user.getById),
     me: requireAuth(user.me),
     roles: user.getRoles.bind(task),
@@ -37,9 +37,9 @@ export default {
     logoutUser: auth.logoutUser,
 
     /* USERS */
-    updateUser: requireAuth(user.update),
-    deleteUser: requireAuth(user.delete),
-    updateUserRole: compose(requireAuth, requireAdmin)(user.updateRole),
+    updateUser: requireSelfOrAdmin(user.update),
+    deleteUser: requireSelfOrAdmin(user.delete),
+    updateUserRole: requireAdmin(user.updateRole),
 
     /* TASKS */
     addTask: requireAuth(task.create),

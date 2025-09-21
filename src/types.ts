@@ -2,6 +2,12 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  role?: string;
+  password?: string;
+}
+
+export interface InputUser extends User {
+  password: string;
 }
 
 export type TaskStatus = "TO_DO" | "IN_PROGRESS" | "BLOCKED" | "DONE";
