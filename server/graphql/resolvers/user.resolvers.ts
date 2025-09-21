@@ -2,6 +2,7 @@ import { GraphQLError } from "graphql";
 import bcrypt from "bcryptjs";
 import { excludePassword } from "../utils/sanitizeUser.js";
 import User, { type Role, UserValidationSchema, type User as UserDoc } from "../../models/User.js";
+import Task from "../../models/Task.js";
 
 type UpdateInput = {
   id: string;
@@ -154,15 +155,29 @@ class Users {
     }
   }
 
-  async delete(_: unknown, { id }: { id: String }) {
+  async delete(_: unknown, { id }: { id: String }, context: { userId?: string; res?: any }) {
     try {
-      const deleted = await User.findByIdAndDelete(id);
+      const user = await User.findById(id);
 
-      if (!deleted) {
+      if (!user) {
         throw new GraphQLError("User not found", {
           extensions: { code: "NOT_FOUND", userId: id },
         });
       }
+
+      // If the user is deleting their own account, clear the auth cookie (log out)
+      const isSelfDelete = context.userId && context.userId === String(id);
+      if (isSelfDelete && context.res) {
+        context.res.cookie("token", "", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 0,
+        });
+      }
+
+      await Task.updateMany({ assignedTo: id }, { assignedTo: null });
+      await User.findByIdAndDelete(id);
 
       return true;
     } catch (error) {

@@ -138,6 +138,7 @@ import {
   ADD_TASK,
   UPDATE_TASK,
   GET_TASK_STATUS_VALUES,
+  GET_TASKS,
   GET_USERS,
 } from "../api/graphql";
 import { Button } from "./ui/button";
@@ -201,8 +202,16 @@ function selectUser(id: string) {
 
 const { result: usersData } = useQuery(GET_USERS);
 const { result: statusValuesData } = useQuery(GET_TASK_STATUS_VALUES);
-const { mutate: addTask } = useMutation(ADD_TASK);
-const { mutate: updateTask } = useMutation(UPDATE_TASK);
+const { mutate: addTask } = useMutation(ADD_TASK, {
+  refetchQueries: [
+    { query: GET_TASKS }
+  ],
+});
+const { mutate: updateTask } = useMutation(UPDATE_TASK, {
+  refetchQueries: [
+    { query: GET_TASKS }
+  ],
+});
 
 watch(
   () => props.task,

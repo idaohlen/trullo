@@ -47,7 +47,7 @@
 import { useMutation } from "@vue/apollo-composable";
 import VueMarkdown from "vue-markdown-render";
 import { format } from "date-fns";
-import { DELETE_TASK } from "../api/graphql";
+import { DELETE_TASK, GET_TASKS } from "../api/graphql";
 import {
   Dialog,
   DialogContent,
@@ -70,7 +70,11 @@ const props = defineProps([
   "onOpenEdit",
 ]);
 
-const { mutate: deleteTask } = useMutation(DELETE_TASK);
+const { mutate: deleteTask } = useMutation(DELETE_TASK, {
+  refetchQueries: [
+    { query: GET_TASKS }
+  ],
+});
 
 function handleClose() {
   props.onClose();
@@ -78,12 +82,12 @@ function handleClose() {
 
 async function handleDelete() {
   await deleteTask({ id: props.task.id });
-  props.onTaskDeleted();
+  if (props.onTaskDeleted) props.onTaskDeleted();
   props.onClose();
 }
 
 async function handleEdit() {
-  props.onOpenEdit(props.task);
+  if (props.onOpenEdit) props.onOpenEdit(props.task);
   props.onClose();
 }
 </script>

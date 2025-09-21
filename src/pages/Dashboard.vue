@@ -39,7 +39,6 @@
   <CreateTaskModal
     :isOpen="isCreateTaskOpen"
     :onClose="closeCreateTaskModal"
-    :onTaskSaved="refetchTasks"
     :task="currentTask"
   />
 
@@ -47,7 +46,6 @@
     :isOpen="isTaskDetailsOpen"
     :onClose="closeTaskDetailsModal"
     :task="currentTask"
-    :onTaskDeleted="refetchTasks"
     :onOpenEdit="handleEdit"
   />
 </template>
@@ -70,15 +68,11 @@ import StatusBadge from "@/components/StatusBadge.vue";
 
 const md = new MarkdownIt();
 
-const { result, loading, error, refetch } = useQuery<GetTasksResult>(GET_TASKS);
+const { result, loading, error } = useQuery<GetTasksResult>(GET_TASKS);
 
 const currentTask = ref<Task | null>(null);
 const isCreateTaskOpen = ref(false);
 const isTaskDetailsOpen = ref(false);
-
-function refetchTasks() {
-  refetch();
-}
 
 function openCreateTaskModal(task: Task | null = null) {
   currentTask.value = task;
