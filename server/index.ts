@@ -7,11 +7,12 @@ async function startServer() {
   try {
     const app = await createApp();
 
-    const PORT = process.env.PORT || 4000;
+    const PORT = process.env.PORT || 3000;
     
     app.listen(PORT, () => {
       console.log(`Server ready at http://localhost:${PORT}`);
-      console.log(`GraphQL API: http://localhost:${PORT}/api`);
+      console.log(`REST API: http://localhost:${PORT}/api`);
+      console.log(`GraphQL API: http://localhost:${PORT}/graphql`);
       
       if (process.env.NODE_ENV === "production") {
         console.log(`Frontend: http://localhost:${PORT}`);

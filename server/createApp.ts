@@ -55,8 +55,10 @@ export async function createApp(): Promise<Express> {
       context: async ({ req, res }) => {
         let userId: string | null = null;
         let role: string | null = null;
+
         const jwtSecret = process.env.JWT_SECRET;
         const token = req.cookies?.token;
+        
         if (token && jwtSecret) {
           try {
             const payload = jwt.verify(token, jwtSecret);
