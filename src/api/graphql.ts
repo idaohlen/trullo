@@ -76,7 +76,7 @@ export const GET_TASKS = gql`
       description
       status
       assignedTo
-      user {
+      assignee {
         id
         name
         email
@@ -96,7 +96,7 @@ export const GET_TASK = gql`
       description
       status
       assignedTo
-      user {
+      assignee {
         id
         name
         email
@@ -144,7 +144,7 @@ export const UPDATE_TASK = gql`
       description
       status
       assignedTo
-      user {
+      assignee {
         name
       }
       createdAt

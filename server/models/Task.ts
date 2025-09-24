@@ -13,6 +13,11 @@ const taskSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  project: {
+  type: mongoose.Schema.Types.ObjectId,
+    ref: "Project",
+    required: true,
+  },
 }, { timestamps: true });
 
 export const TaskValidationSchema = z.object({ 
@@ -20,6 +25,7 @@ export const TaskValidationSchema = z.object({
   description: z.string().optional(),
   status: z.enum(TASK_STATUSES).optional(),
   assignedTo: z.string().optional(),
+  project: z.string().min(1, "A project is required"),
 });
 
 export type Task = InferSchemaType<typeof taskSchema> & Document;

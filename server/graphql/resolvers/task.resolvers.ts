@@ -29,7 +29,7 @@ class Tasks {
     createdAt: (doc: TaskDoc) => doc.createdAt ? doc.createdAt.toISOString() : null,
     updatedAt: (doc: TaskDoc) => doc.updatedAt ? doc.updatedAt.toISOString() : null,
     finishedAt: (doc: TaskDoc) => doc.finishedAt ? doc.finishedAt.toISOString() : null,
-    user: async (doc: TaskDoc, _args: unknown) => {
+    assignee: async (doc: TaskDoc, _args: unknown) => {
       const user = await User.findById(doc.assignedTo);
       return user ? excludePassword(user) : null;
     }
@@ -46,6 +46,13 @@ class Tasks {
   */
   async getMany(_: unknown) {
     return await Task.find();
+  }
+
+  /*
+    GET BY PROJECT
+  */
+  async getByProject(_: unknown, { projectId }: { projectId: string }) {
+    return await Task.find({ project: projectId });
   }
 
   /*

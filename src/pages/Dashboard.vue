@@ -26,10 +26,10 @@
             {{ getFirstLine(task.description) }}
           </div>
           <Badge
-            v-if="task.user"
+            v-if="task.assignee"
             variant="outline"
             class="text-[.7rem] bg-white mt-2"
-            >{{ task.user.name }}</Badge
+            >{{ task.assignee.name }}</Badge
           >
         </div>
       </Card>

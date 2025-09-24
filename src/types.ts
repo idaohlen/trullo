@@ -17,7 +17,7 @@ export interface Task {
   title: string;
   description: string;
   status: TaskStatus;
-  user: User;
+  assignee: User;
   createdAt: string;
   updatedAt: string;
   finishedAt: string;
