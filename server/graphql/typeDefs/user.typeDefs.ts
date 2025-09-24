@@ -1,4 +1,28 @@
 export default `#graphql
+  type Query {
+    user(id: ID!):  User   @auth
+    users:         [User]  @auth
+    me:             User   @auth
+    roles:         [Role]
+  }
+
+  type Mutation {
+    updateUser(
+      id: ID!
+      name: String
+      email: String
+      password: String
+      currentPassword: String
+    ): User @auth(role: "ADMIN", allowSelf: true, selfArg: "id")
+
+    updateUserRole(
+      userId: ID!
+      role: Role!
+    ): User @auth(role: "ADMIN")
+    
+    deleteUser(id: ID!): Boolean @auth(role: "ADMIN", allowSelf: true, selfArg: "id")
+  }
+
   enum Role {
     USER
     ADMIN
@@ -12,29 +36,5 @@ export default `#graphql
     role: Role!
     createdAt: String
     updatedAt: String
-  }
-
-  type Query {
-    user(id: ID!): User
-    users: [User]
-    me: User
-    roles: [Role]
-  }
-
-  type Mutation {
-    updateUser(
-      id: ID!
-      name: String
-      email: String
-      password: String
-      currentPassword: String
-    ): User
-
-    updateUserRole(
-      userId: ID!
-      role: Role!
-    ): User
-    
-    deleteUser(id: ID!): Boolean
   }
 `;

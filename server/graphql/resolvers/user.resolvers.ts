@@ -1,8 +1,8 @@
-import { GraphQLError } from "graphql";
 import bcrypt from "bcryptjs";
 import { excludePassword } from "../utils/sanitizeUser.js";
 import User, { type Role, UserValidationSchema, type User as UserDoc } from "../../models/User.js";
 import Task from "../../models/Task.js";
+import { validateOrThrow, notFoundIfNull, badInputIf, badInputIfInvalidId } from "../utils/errorHandling.js";
 
 type UpdateInput = {
   id: string;
@@ -25,169 +25,115 @@ class Users {
     return Users.roles;
   }
 
+  /*
+    GET MANY
+  */
   async getMany(_: unknown) {
-    try {
-      const users = await User.find();
-      return users.map(excludePassword);
-    } catch (error) {
-      throw error instanceof GraphQLError
-        ? error
-        : new GraphQLError("Internal error", {
-            extensions: { code: "INTERNAL_SERVER_ERROR" },
-          });
-    }
+    const users = await User.find();
+    return users.map(excludePassword);
   }
 
+  /*
+    GET BY ID
+  */
   async getById(_: unknown, { id }: { id: string }) {
-    try {
-      const user = await User.findById(id);
-
-      if (!user) {
-        throw new GraphQLError("User not found", {
-          extensions: { code: "NOT_FOUND" },
-        });
-      }
-
-      return excludePassword(user);
-    } catch (error) {
-      console.error("getById error:", error);
-      throw error instanceof GraphQLError
-        ? error
-        : new GraphQLError("Internal error", {
-            extensions: { code: "INTERNAL_SERVER_ERROR" },
-          });
-    }
-  }
-
-  async me(_: unknown, _args: unknown, context: { userId: string }) {
-    const user = await User.findById(context.userId);
+    badInputIfInvalidId(id, "Invalid user id", { userId: id }); // validate ID
+    const user = await User.findById(id);
+    notFoundIfNull(user, "User not found", { userId: id }); // error handling
     return excludePassword(user);
   }
 
-  async update(_: unknown, { id, currentPassword, ...input }: UpdateInput, context: { userId: string; role?: string }) {
-    const UserUpdateSchema = UserValidationSchema.partial();
-    const parseResult = UserUpdateSchema.safeParse(input);
+  /*
+    GET ME
+  */
+  async me(_: unknown, _args: unknown, context: { userId: string }) {
+    const id = context.userId;
+    badInputIfInvalidId(id, "Invalid user id", { userId: id }); // validate ID
 
-    if (!parseResult.success) {
-      throw new GraphQLError("Validation error", {
-        extensions: { code: "BAD_USER_INPUT", error: parseResult.error },
-      });
-    }
-
-    try {
-      // Get the current user to compare values
-      const user = await User.findById(id);
-      if (!user) {
-        throw new GraphQLError("User not found", {
-          extensions: { code: "NOT_FOUND" },
-        });
-      }
-
-      // Check if this is a self-update (user updating their own profile)
-      const isSelfUpdate = context.userId === id;
-      
-      // Check if email or password are actually changing
-      const emailChanged = input.email !== undefined && input.email !== user.email;
-      const passwordChanged = input.password !== undefined && input.password.trim() !== "";
-      
-      // If user is updating their own email or password, require current password
-      if (isSelfUpdate && (emailChanged || passwordChanged)) {
-        if (!currentPassword) {
-          throw new GraphQLError("Current password is required when changing email or password", {
-            extensions: { code: "BAD_USER_INPUT" },
-          });
-        }
-
-        // Verify current password
-        const isCurrentPasswordValid = await user.comparePassword(currentPassword);
-        if (!isCurrentPasswordValid) {
-          throw new GraphQLError("Current password is incorrect", {
-            extensions: { code: "BAD_USER_INPUT" },
-          });
-        }
-      }
-
-      // Hash password if provided
-      const updateData = { ...parseResult.data };
-      if (updateData.password) {
-        updateData.password = await bcrypt.hash(updateData.password, 10);
-      }
-
-      const updatedUser = await User.findByIdAndUpdate(id, updateData, {
-        new: true,
-      });
-
-      if (!updatedUser) {
-        throw new GraphQLError("Failed to update user", {
-          extensions: { code: "INTERNAL_SERVER_ERROR" },
-        });
-      }
-
-      return excludePassword(updatedUser);
-    } catch (error) {
-      console.error("update error:", error);
-      throw error instanceof GraphQLError
-        ? error
-        : new GraphQLError("Internal error", {
-            extensions: { code: "INTERNAL_SERVER_ERROR" },
-          });
-    }
-  }  async updateRole(_: unknown, { id, role }: { id: String, role: Role }) {
-    try {
-      const updatedUser = await User.findByIdAndUpdate(id, { role }, {
-        new: true,
-      });
-
-      if (!updatedUser) {
-        throw new GraphQLError("User not found", {
-          extensions: { code: "NOT_FOUND", userId: id },
-        });
-      }
-
-      return updatedUser;
-    } catch (error) {
-      console.error("update error:", error);
-      throw error instanceof GraphQLError
-        ? error
-        : new GraphQLError("Internal error", {
-            extensions: { code: "INTERNAL_SERVER_ERROR" },
-          });
-    }
+    const user = await User.findById(context.userId);
+    notFoundIfNull(user, "User not found", { userId: context.userId }); // error handling
+    return excludePassword(user);
   }
 
-  async delete(_: unknown, { id }: { id: String }, context: { userId?: string; res?: any }) {
-    try {
-      const user = await User.findById(id);
+  /*
+    UPDATE
+  */
+  async update(_: unknown, { id, currentPassword, ...input }: UpdateInput, context: { userId: string; role?: string }) {
+    badInputIfInvalidId(id, "Invalid user id", { userId: id }); // validate ID
+    
+    const UserUpdateSchema = UserValidationSchema.partial();
+    const data = validateOrThrow(UserUpdateSchema, input);
 
-      if (!user) {
-        throw new GraphQLError("User not found", {
-          extensions: { code: "NOT_FOUND", userId: id },
-        });
-      }
+    // Get the current user to compare values
+    const user = await User.findById(id);
+    notFoundIfNull(user, "User not found", { userId: id }); // error handling
 
-      // If the user is deleting their own account, clear the auth cookie (log out)
-      const isSelfDelete = context.userId && context.userId === String(id);
-      if (isSelfDelete && context.res) {
-        context.res.cookie("token", "", {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          maxAge: 0,
-        });
-      }
-
-      await Task.updateMany({ assignedTo: id }, { assignedTo: null });
-      await User.findByIdAndDelete(id);
-
-      return true;
-    } catch (error) {
-      console.error("delete error:", error);
-      throw error instanceof GraphQLError
-        ? error
-        : new GraphQLError("Internal error", {
-            extensions: { code: "INTERNAL_SERVER_ERROR" },
-          });
+    // Check if this is a self-update (user updating their own profile)
+    const isSelfUpdate = context.userId === id;
+    
+    // Check if email or password are actually changing
+    const emailChanged = input.email !== undefined && input.email !== user.email;
+    const passwordChanged = input.password !== undefined && input.password.trim() !== "";
+    
+    // If user is updating their own email or password, require current password
+    if (isSelfUpdate && (emailChanged || passwordChanged)) {
+      badInputIf(!currentPassword, "Current password is required when changing email or password");
+      
+      // Verify current password
+      const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+      badInputIf(!isCurrentPasswordValid, "Current password is incorrect");
     }
+
+    // Hash password if provided
+    const updateData = data;
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
+    return excludePassword(updatedUser);
+  } 
+  
+  /*
+    UPDATE ROLE
+  */
+  async updateRole(_: unknown, { id, role }: { id: string, role: Role }) {
+    badInputIfInvalidId(id, "Invalid user id", { userId: id }); // validate ID
+
+    const updatedUser = await User.findByIdAndUpdate(id, { role }, {
+      new: true,
+    });
+
+    notFoundIfNull(updatedUser, "User not found", { userId: id }); // error handling
+    return updatedUser;
+  }
+
+  /*
+    DELETE
+  */
+  async delete(_: unknown, { id }: { id: string }, context: { userId?: string; res?: any }) {
+    badInputIfInvalidId(id, "Invalid user id", { userId: id }); // validate ID
+    const user = await User.findById(id);
+    notFoundIfNull(user, "User not found", { userId: id }); // error handling
+
+    // If the user is deleting their own account, clear the auth cookie (log out)
+    const isSelfDelete = context.userId && context.userId === String(id);
+    if (isSelfDelete && context.res) {
+      context.res.cookie("token", "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 0,
+      });
+    }
+
+    await Task.updateMany({ assignedTo: id }, { assignedTo: null });
+    await User.findByIdAndDelete(id);
+    return true;
   }
 }
 

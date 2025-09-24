@@ -10,87 +10,89 @@
         </span>
     </h1>
 
-    <Card class="w-full max-w-xs p-6">
-      <Tabs default-value="login" class="w-full">
-        <TabsList class="grid w-full grid-cols-2">
-          <TabsTrigger value="login">Login</TabsTrigger>
-          <TabsTrigger value="register">Register</TabsTrigger>
-        </TabsList>
-        <!-- Login -->
-        <TabsContent value="login">
-          <form @submit.prevent="handleLogin" class="grid gap-2 w-full">
-            <div class="grid gap-2">
-              <Label for="email">Email</Label>
-              <Input
-                v-model="email"
-                id="email"
-                type="email"
-                placeholder="Email"
-                autocomplete="email"
-                class="bg-white text-black"
-              />
-            </div>
-            <div class="grid gap-2">
-              <Label for="password">Password</Label>
-              <Input
-                v-model="password"
-                id="password"
-                type="password"
-                placeholder="Password"
-                autocomplete="current-password"
-                class="bg-white text-black"
-              />
-            </div>
-            <Button class="mt-3">Login</Button>
-          </form>
-        </TabsContent>
-        <!-- Register -->
-        <TabsContent value="register">
-          <form @submit.prevent="handleRegistration" class="grid gap-4 w-full">
-            <div class="grid gap-2">
-              <Label for="name">Name</Label>
-              <Input
-                v-model="name"
-                id="name"
-                type="name"
-                placeholder="Name"
-                class="bg-white text-black"
-              />
-            </div>
-            <div class="grid gap-2">
-              <Label for="email">Email</Label>
-              <Input
-                v-model="email"
-                id="email"
-                type="email"
-                placeholder="Email"
-                autocomplete="username"
-                class="bg-white text-black"
-              />
-            </div>
-            <div class="grid gap-2">
-              <Label for="password">Password</Label>
-              <Input
-                v-model="password"
-                id="password"
-                type="password"
-                placeholder="Password"
-                autocomplete="new-password"
-                class="bg-white text-black"
-              />
-            </div>
-            <Button class="mt-3">Register</Button>
-          </form>
-        </TabsContent>
-      </Tabs>
-    </Card>
-    <Alert v-if="error" variant="destructive" class="max-w-xs">
-      <AlertCircle class="w-4 h-4" />
-      <AlertTitle>Invalid input</AlertTitle>
-      <AlertDescription>
-        {{ error }}
-      </AlertDescription>
-    </Alert>
+    <div v-if="!isLoggedIn" class="w-full max-w-xs">
+      <Card class="w-full p-6">
+        <Tabs default-value="login" class="w-full">
+          <TabsList class="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Login</TabsTrigger>
+            <TabsTrigger value="register">Register</TabsTrigger>
+          </TabsList>
+          <!-- Login -->
+          <TabsContent value="login">
+            <form @submit.prevent="handleLogin" class="grid gap-2 w-full">
+              <div class="grid gap-2">
+                <Label for="email">Email</Label>
+                <Input
+                  v-model="email"
+                  id="email"
+                  type="email"
+                  placeholder="Email"
+                  autocomplete="email"
+                  class="bg-white text-black"
+                />
+              </div>
+              <div class="grid gap-2">
+                <Label for="password">Password</Label>
+                <Input
+                  v-model="password"
+                  id="password"
+                  type="password"
+                  placeholder="Password"
+                  autocomplete="current-password"
+                  class="bg-white text-black"
+                />
+              </div>
+              <Button class="mt-3">Login</Button>
+            </form>
+          </TabsContent>
+          <!-- Register -->
+          <TabsContent value="register">
+            <form @submit.prevent="handleRegistration" class="grid gap-4 w-full">
+              <div class="grid gap-2">
+                <Label for="name">Name</Label>
+                <Input
+                  v-model="name"
+                  id="name"
+                  type="name"
+                  placeholder="Name"
+                  class="bg-white text-black"
+                />
+              </div>
+              <div class="grid gap-2">
+                <Label for="email">Email</Label>
+                <Input
+                  v-model="email"
+                  id="email"
+                  type="email"
+                  placeholder="Email"
+                  autocomplete="username"
+                  class="bg-white text-black"
+                />
+              </div>
+              <div class="grid gap-2">
+                <Label for="password">Password</Label>
+                <Input
+                  v-model="password"
+                  id="password"
+                  type="password"
+                  placeholder="Password"
+                  autocomplete="new-password"
+                  class="bg-white text-black"
+                />
+              </div>
+              <Button class="mt-3">Register</Button>
+            </form>
+          </TabsContent>
+        </Tabs>
+      </Card>
+      <Alert v-if="error" variant="destructive" class="max-w-xs">
+        <AlertCircle class="w-4 h-4" />
+        <AlertTitle>Invalid input</AlertTitle>
+        <AlertDescription>
+          {{ error }}
+        </AlertDescription>
+      </Alert>
+    </div>
   </div>
 </template>
 
@@ -110,7 +112,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClipboardCheck, AlertCircle } from "lucide-vue-next";
 import { useAuth } from "../composables/useAuth";
 
-const { refetch } = useAuth();
+const { isLoggedIn, refetch } = useAuth();
 const router = useRouter();
 
 const loading = ref(false);

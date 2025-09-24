@@ -1,5 +1,4 @@
 import type { Types } from "mongoose";
-import { GraphQLError } from "graphql";
 import Task, {
   TaskValidationSchema,
   type TaskStatus,
@@ -7,6 +6,7 @@ import Task, {
 } from "../../models/Task.js";
 import User from "../../models/User.js";
 import { excludePassword } from "../utils/sanitizeUser.js";
+import { validateOrThrow, notFoundIfNull, badInputIfInvalidId } from "../utils/errorHandling.js";
 
 type CreateInput = {
   title: string;
@@ -41,115 +41,67 @@ class Tasks {
     return Tasks.statusValues;
   }
 
+  /*
+    GET MANY
+  */
   async getMany(_: unknown) {
-    try {
-      return await Task.find();
-    } catch (error) {
-      throw error instanceof GraphQLError
-        ? error
-        : new GraphQLError("Internal error", {
-            extensions: { code: "INTERNAL_SERVER_ERROR" },
-          });
-    }
+    return await Task.find();
   }
 
+  /*
+    GET BY ID
+  */
   async getById(_: unknown, { id }: { id: string }) {
-    try {
-      const task = await Task.findById(id);
+    badInputIfInvalidId(id, "Invalid task id", { taskId: id }); // validate ID
+    const task = await Task.findById(id);
 
-      if (!task) {
-        throw new GraphQLError("Task not found", {
-          extensions: { code: "NOT_FOUND" },
-        });
-      }
-
-      return task;
-    } catch (error) {
-      console.error("getById error:", error);
-      throw error instanceof GraphQLError
-        ? error
-        : new GraphQLError("Internal error", {
-            extensions: { code: "INTERNAL_SERVER_ERROR" },
-          });
-    }
+    notFoundIfNull(task, "Task not found", { taskId: id }); // error handling
+    return task;
   }
 
+  /*
+    CREATE
+  */
   async create(_: unknown, input: CreateInput) {
-    const parseResult = TaskValidationSchema.safeParse(input);
-
-    if (!parseResult.success) {
-      throw new GraphQLError("Validation error", {
-        extensions: { code: "BAD_USER_INPUT", error: parseResult.error },
-      });
-    }
-
-    try {
-      return await Task.create(parseResult.data);
-    } catch (error: any) {
-      console.error("create error:", error);
-      throw new GraphQLError("Failed to create task", {
-        extensions: { code: "INTERNAL_SERVER_ERROR" },
-      });
-    }
+    // Validate input
+    const data = validateOrThrow(TaskValidationSchema, input);
+    return await Task.create(data);
   }
 
+  /*
+    UPDATE
+  */
   async update(_: unknown, { id, ...input }: UpdateInput) {
+    badInputIfInvalidId(id, "Invalid task id", { taskId: id }); // validate ID
+
+    // Validate input
     const TaskUpdateSchema = TaskValidationSchema.partial();
-    const parseResult = TaskUpdateSchema.safeParse(input);
+    const data = validateOrThrow(TaskUpdateSchema, input);
 
-    if (!parseResult.success) {
-      throw new GraphQLError("Validation error", {
-        extensions: { code: "BAD_USER_INPUT", error: parseResult.error },
-      });
-    }
+    const update: Record<string, any> = { ...data };
 
-    const update: Record<string, any> = { ...parseResult.data };
-
+    // If status changes to DONE, set finishedAt date
     if (input.status === "DONE") update.finishedAt = new Date();
     else update.finishedAt = null;
 
-    try {
-      const updatedTask = await Task.findByIdAndUpdate(id, update, {
-        runValidation: true,
-        new: true,
-      });
+    const updatedTask = await Task.findByIdAndUpdate(id, update, {
+      runValidation: true,
+      new: true,
+    });
 
-      if (!updatedTask) {
-        throw new GraphQLError("Task not found", {
-          extensions: { code: "NOT_FOUND", taskId: id },
-        });
-      }
-
-      return updatedTask;
-    } catch (error) {
-      console.error("update error:", error);
-      throw error instanceof GraphQLError
-        ? error
-        : new GraphQLError("Internal error", {
-            extensions: { code: "INTERNAL_SERVER_ERROR" },
-          });
-    }
+    notFoundIfNull(updatedTask, "Task not found", { taskId: id }); // error handling
+    return updatedTask;
   }
 
-  async delete(_: unknown, { id }: { id: String }) {
-    try {
-      const deleted = await Task.findByIdAndDelete(id);
+  /*
+    DELETE
+  */
+  async delete(_: unknown, { id }: { id: string }) {
+    badInputIfInvalidId(id, "Invalid task id", { taskId: id }); // validate ID
 
-      if (!deleted) {
-        throw new GraphQLError("Task not found", {
-          extensions: { code: "NOT_FOUND", taskId: id },
-        });
-      }
-
-      return true;
-    } catch (error) {
-      console.error("delete error:", error);
-      throw error instanceof GraphQLError
-        ? error
-        : new GraphQLError("Internal error", {
-            extensions: { code: "INTERNAL_SERVER_ERROR" },
-          });
-    }
+    const deleted = await Task.findByIdAndDelete(id);
+    notFoundIfNull(deleted, "Task not found", { taskId: id }); // error handling
+    return true;
   }
 }
 

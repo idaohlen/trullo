@@ -1,4 +1,29 @@
 export default `#graphql
+  type Query {
+    task(id: ID!):     Task          @auth
+    tasks:            [Task]         @auth
+    taskStatusValues: [TaskStatus!]!
+  }
+
+  type Mutation {
+    addTask(
+      title: String!,
+      description: String,
+      status: TaskStatus,
+      assignedTo: ID,
+    ): Task @auth
+
+    updateTask(
+      id: ID!,
+      title: String,
+      description: String,
+      status: TaskStatus,
+      assignedTo: ID,
+    ): Task @auth
+
+    deleteTask(id: ID!): Boolean @auth
+  }
+  
   enum TaskStatus {
     TO_DO
     IN_PROGRESS
@@ -16,30 +41,5 @@ export default `#graphql
     finishedAt: String
     assignedTo: ID
     user: User
-  }
-
-  type Query {
-    task(id: ID!): Task
-    tasks: [Task]
-    taskStatusValues: [TaskStatus!]!
-  }
-
-  type Mutation {
-    addTask(
-      title: String!,
-      description: String,
-      status: TaskStatus,
-      assignedTo: ID,
-    ): Task
-
-    updateTask(
-      id: ID!,
-      title: String,
-      description: String,
-      status: TaskStatus,
-      assignedTo: ID,
-    ): Task
-
-    deleteTask(id: ID!): Boolean
   }
 `;
