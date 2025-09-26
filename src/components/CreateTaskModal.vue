@@ -1,11 +1,10 @@
 <template>
-
   <Dialog :open="isOpen" @update:open="handleClose">
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>{{
-          isEdit ? "Edit task" : "Create new task"
-        }}</DialogTitle>
+        <DialogTitle>
+          {{ isEdit ? "Edit task" : "Create new task" }}
+        </DialogTitle>
         <DialogDescription class="sr-only">
           {{ isEdit ? "Edit task form" : "Create new task form" }}
         </DialogDescription>
@@ -48,13 +47,19 @@
             @select="(user: User) => selectUser(user.id)"
           />
 
-          <Button type="button" variant="outline" size="icon" @click="handleClearAssignee"><Eraser /></Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            @click="handleClearAssignee"
+            ><Eraser
+          /></Button>
         </div>
 
         <div class="flex justify-end gap-2 mt-4">
           <Button type="button" variant="outline" @Click="handleClose">
             Cancel
-            </Button>
+          </Button>
           <Button type="submit">
             {{ isEdit ? "Save changes" : "Create task" }}
           </Button>
@@ -80,10 +85,10 @@ import {
   ADD_TASK,
   UPDATE_TASK,
   GET_TASK_STATUS_VALUES,
-  GET_TASKS,
   GET_PROJECT_TASKS,
+  GET_MY_TASKS,
 } from "../api/task.gql";
-import { GET_USERS } from "../api/user.gql";
+import { GET_PROJECT } from "../api/project.gql";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -131,34 +136,67 @@ const assignedUserId = ref<string | null>(null);
 const userPopoverOpen = ref(false);
 const userSearch = ref("");
 
-const selectedUser = computed(() => users.value.find((u: User) => u.id === assignedUserId.value) || null);
+const selectedUser = computed(
+  () => users.value.find((u: User) => u.id === assignedUserId.value) || null
+);
 const displayText = computed(() => selectedUser.value?.email ?? "Choose user");
-const statusValues = computed(() => statusValuesData.value?.taskStatusValues ?? []);
-const users = computed(() => usersData.value?.users ?? []);
+const statusValues = computed(
+  () => statusValuesData.value?.taskStatusValues ?? []
+);
+const users = computed(() => projectData.value?.project?.membersList ?? []);
 
 function selectUser(id: string) {
   assignedUserId.value = id;
   userPopoverOpen.value = false;
 }
 
-const { result: usersData } = useQuery(GET_USERS);
+// Get the project ID from either props.projectId (for new tasks) or task.projectId (for editing)
+const effectiveProjectId = computed(() => {
+  return props.projectId || props.task?.projectId;
+});
+
+const { result: projectData } = useQuery(
+  GET_PROJECT,
+  () => ({ id: effectiveProjectId.value }),
+  () => ({ enabled: !!effectiveProjectId.value })
+);
 const { result: statusValuesData } = useQuery(GET_TASK_STATUS_VALUES);
 const { mutate: addTask } = useMutation(ADD_TASK, {
-  refetchQueries: [
-    { query: GET_TASKS },
-    { 
+  refetchQueries: () => [
+    {
       query: GET_PROJECT_TASKS,
-      variables: { projectId: props.projectId }
-    }
+      variables: {
+        projectId: effectiveProjectId.value,
+        page: 1,
+        limit: 10,
+      },
+    },
+    {
+      query: GET_MY_TASKS,
+      variables: {
+        page: 1,
+        limit: 10,
+      },
+    },
   ],
 });
 const { mutate: updateTask } = useMutation(UPDATE_TASK, {
-  refetchQueries: [
-    { query: GET_TASKS },
-    { 
+  refetchQueries: () => [
+    {
       query: GET_PROJECT_TASKS,
-      variables: { projectId: props.projectId }
-    }
+      variables: {
+        projectId: effectiveProjectId.value,
+        page: 1,
+        limit: 10,
+      },
+    },
+    {
+      query: GET_MY_TASKS,
+      variables: {
+        page: 1,
+        limit: 10,
+      },
+    },
   ],
 });
 
@@ -169,7 +207,9 @@ watch(
       title.value = task.title || "";
       description.value = task.description || "";
       status.value = task.status || "TO_DO";
-      assignedUserId.value = task.assignee?.id ? String(task.assignee.id) : null;
+      assignedUserId.value = task.assignee?.id
+        ? String(task.assignee.id)
+        : null;
     } else {
       title.value = "";
       description.value = "";
@@ -194,7 +234,7 @@ function handleClearAssignee() {
 async function handleSaveTask() {
   error.value = "";
   showLoading(isEdit.value ? "Updating task..." : "Creating task...");
-  
+
   try {
     const assignedTo = assignedUserId.value || undefined;
     if (isEdit.value && props.task) {
@@ -211,7 +251,7 @@ async function handleSaveTask() {
         description: description.value,
         status: status.value || undefined,
         assignedTo,
-        projectId : props.projectId
+        projectId: effectiveProjectId.value,
       });
     }
 

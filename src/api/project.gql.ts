@@ -19,6 +19,56 @@ export const GET_PROJECT =  gql`
   }
 `;
 
+export const GET_PROJECTS = gql`
+  query GetProjects($page: Int, $limit: Int) {
+    projects(page: $page, limit: $limit) {
+      items {
+        id 
+        title 
+        description 
+        ownerId
+        owner {
+          name
+          email
+        }
+        members
+        membersList {
+          id
+          name
+          email
+        }
+      }
+      totalCount
+      hasNextPage
+      hasPreviousPage
+      currentPage
+      totalPages
+    }
+  }
+`;
+
+export const GET_MY_PROJECTS = gql`
+  query GetMyProjects($page: Int, $limit: Int) {
+    myProjects(page: $page, limit: $limit) {
+      items {
+        id 
+        title 
+        description 
+        membersList {
+          id
+          name
+          email
+        }
+      }
+      totalCount
+      hasNextPage
+      hasPreviousPage
+      currentPage
+      totalPages
+    }
+  }
+`;
+
 export const ADD_PROJECT = gql`
   mutation AddProject(
     $title: String!
@@ -44,38 +94,6 @@ export const ADD_PROJECT = gql`
       }
       createdAt
       updatedAt
-    }
-  }
-`;
-
-export const GET_PROJECTS = gql`
-  query GetProjects {
-    projects {
-      id 
-      title 
-      description 
-      ownerId
-      members
-      membersList {
-        id
-        name
-        email
-      }
-    }
-  }
-`;
-
-export const GET_MY_PROJECTS = gql`
-  query GetMyProjects {
-    myProjects {
-      id 
-      title 
-      description 
-      membersList {
-        id
-        name
-        email
-      }
     }
   }
 `;

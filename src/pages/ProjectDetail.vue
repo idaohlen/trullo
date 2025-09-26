@@ -117,7 +117,7 @@
       <div class="flex items-start justify-between gap-4">
         <div class="flex items-center gap-2">
           <h2 class="text-2xl font-semibold">Project Tasks</h2>
-          <Badge variant="outline">tasks</Badge>
+          <Badge variant="outline">{{ tasksPagination?.totalCount ?? 0 }} tasks</Badge>
         </div>
         <Button @click="handleCreateTask" variant="outline" class="text-emerald-600 border-1 border-emerald-600/50 hover:bg-emerald-100 hover:text-emerald-700"><ClipboardPlus />
           Add task</Button>
@@ -206,11 +206,11 @@ const { result, loading, error } = useQuery(GET_PROJECT,
 const project = computed(() => result.value?.project as Project | null);
 
 const { mutate: deleteProject } = useMutation(DELETE_PROJECT, {
-  refetchQueries: [{ query: GET_MY_PROJECTS }],
+  refetchQueries: [{ query: GET_MY_PROJECTS, variables: { page: 1, limit: 6 } }],
 });
 
 const { mutate: leaveProject } = useMutation(LEAVE_PROJECT, {
-  refetchQueries: [{ query: GET_MY_PROJECTS }],
+  refetchQueries: [{ query: GET_MY_PROJECTS, variables: { page: 1, limit: 6 } }],
 });
 
 function isOwner() {

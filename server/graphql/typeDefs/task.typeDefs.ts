@@ -1,10 +1,14 @@
 export default `#graphql
   type Query {
-    task(id: ID!):                                       Task           @auth
-    tasks(page: Int, limit: Int):                        PaginatedTasks @auth @admin
-    projectTasks(projectId: ID!, page: Int, limit: Int): PaginatedTasks @auth
-    myTasks:                                            [Task]          @auth
-    taskStatusValues:                                   [TaskStatus!]!
+    task(id: ID!): Task @auth
+    tasks(page: Int, limit: Int): PaginatedTasks @auth @admin
+    projectTasks(
+      projectId: ID!, 
+      page: Int,
+      limit: Int):
+      PaginatedTasks @auth
+    myTasks(page: Int, limit: Int): PaginatedTasks @auth
+    taskStatusValues: [TaskStatus!]!
   }
 
   type Mutation {

@@ -51,7 +51,7 @@
               @click="removeMemberById(memberId)"
             >
               {{ getMemberDisplayName(memberId) }}
-              <span v-if="memberId === ownerId" class="ml-1 text-xs">(owner)</span>
+              <span v-if="memberId === ownerId" class="text-xs">(owner)</span>
               <X v-else class="ml-1 h-3 w-3" />
             </Badge>
           </div>
@@ -153,7 +153,7 @@ const userSearch = ref("");
 const ownerSearch = ref("");
 
 const users = computed(() => {
-  return usersData.value?.users ?? [];
+  return usersData.value?.users.items ?? [];
 });
 
 const owner = computed(() => {
@@ -214,13 +214,13 @@ function selectOwner(id: string) {
 
 const authStore = useAuthStore();
 
-const { result: usersData } = useQuery(GET_USERS);
+const { result: usersData } = useQuery(GET_USERS, { page: 1, limit: 100 }); // Get more users for selection
 
 const { mutate: addProject } = useMutation(ADD_PROJECT, {
-  refetchQueries: [{ query: GET_MY_PROJECTS }],
+  refetchQueries: [{ query: GET_MY_PROJECTS, variables: { page: 1, limit: 6 } }],
 });
 const { mutate: updateProject } = useMutation(UPDATE_PROJECT, {
-  refetchQueries: [{ query: GET_MY_PROJECTS }],
+  refetchQueries: [{ query: GET_MY_PROJECTS, variables: { page: 1, limit: 6 } }],
 });
 
 watch(

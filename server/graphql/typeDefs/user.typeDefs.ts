@@ -1,9 +1,9 @@
 export default `#graphql
   type Query {
-    user(id: ID!):  User   @auth
-    users:         [User]  @auth
-    me:             User   @auth
-    roles:         [Role]
+    user(id: ID!): User @auth
+    users(page: Int, limit: Int): PaginatedUsers @auth
+    me: User @auth
+    roles: [Role]
   }
 
   type Mutation {

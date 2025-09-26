@@ -85,8 +85,8 @@ const projectSearch = ref("");
 const user = computed(() => authStore.user);
 
 // Query all projects that the user is not already a member of
-const { result: projectsData } = useQuery(GET_PROJECTS);
-const projects = computed(() => projectsData.value?.projects || []);
+const { result: projectsData } = useQuery(GET_PROJECTS, { page: 1, limit: 50 }); // Get more projects for joining
+const projects = computed(() => projectsData.value?.projects.items || []);
 
 // Filter out projects where user is already a member or owner
 const availableProjects = computed(() => {
@@ -116,7 +116,10 @@ const displayText = computed(() => {
 });
 
 const { mutate: joinProject } = useMutation(JOIN_PROJECT, {
-  refetchQueries: [{ query: GET_PROJECTS }, { query: GET_MY_PROJECTS }],
+  refetchQueries: [
+    { query: GET_PROJECTS, variables: { page: 1, limit: 10 } }, 
+    { query: GET_MY_PROJECTS, variables: { page: 1, limit: 6 } }
+  ],
 });
 
 function selectProject(id: string) {

@@ -1,11 +1,18 @@
 import { gql } from "@apollo/client/core";
 
 export const GET_USERS = gql`
-  query GetUsers {
-    users {
-      id
-      name
-      email
+  query GetUsers($page: Int, $limit: Int) {
+    users(page: $page, limit: $limit) {
+      items {
+        id
+        name
+        email
+      }
+      totalCount
+      hasNextPage
+      hasPreviousPage
+      currentPage
+      totalPages
     }
   }
 `;

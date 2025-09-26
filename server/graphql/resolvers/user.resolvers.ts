@@ -3,6 +3,7 @@ import { excludePassword } from "../utils/sanitizeUser.js";
 import User, { type Role, UserValidationSchema, type User as UserDoc } from "../../models/User.js";
 import Task from "../../models/Task.js";
 import { validateOrThrow, notFoundIfNull, badInputIf, badInputIfInvalidId } from "../utils/errorHandling.js";
+import { paginateFind } from "../utils/pagination.js";
 
 type UpdateInput = {
   id: string;
@@ -28,9 +29,8 @@ class Users {
   /*
     GET MANY
   */
-  async getMany(_: unknown) {
-    const users = await User.find();
-    return users.map(excludePassword);
+  async getMany(_: unknown, { page, limit }: { page?: number; limit?: number }) {
+    return await paginateFind<UserDoc>(User.find().select("-password"), { page, limit });
   }
 
   /*

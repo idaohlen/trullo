@@ -1,8 +1,8 @@
 export default `#graphql
   type Query {
-    project(id: ID!):  Project  @auth @member
-    projects:         [Project] @auth
-    myProjects:       [Project] @auth
+    project(id: ID!): Project @auth @member
+    projects(page: Int, limit: Int): PaginatedProjects @auth
+    myProjects(page: Int, limit: Int): PaginatedProjects @auth
   }
 
   type Mutation {

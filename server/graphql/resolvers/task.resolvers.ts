@@ -12,7 +12,7 @@ import {
   notFoundIfNull,
   badInputIfInvalidId,
 } from "../utils/errorHandling.js";
-import { paginateAggregate } from "../utils/pagination.js";
+import { paginateFind, paginateAggregate } from "../utils/pagination.js";
 
 type CreateInput = {
   title: string;
@@ -60,8 +60,11 @@ class Tasks {
   /*
     GET MANY
   */
-  async getMany(_: unknown) {
-    return await Task.find();
+  async getMany(
+    _: unknown,
+    { page, limit }: { page?: number; limit?: number }
+  ) {
+    return await paginateFind<TaskDoc>(Task.find(), { page, limit });
   }
 
   /*
@@ -88,8 +91,15 @@ class Tasks {
   /*
     GET MINE
   */
-  async getMine(_: unknown, _args: unknown, context: { userId: string }) {
-    return await Task.find({ assignedTo: context.userId });
+  async getMine(
+    _: unknown,
+    { page, limit }: { page?: number; limit?: number },
+    context: { userId: string }
+  ) {
+    return await paginateFind<TaskDoc>(
+      Task.find({ assignedTo: context.userId }),
+      { page, limit }
+    );
   }
 
   /*

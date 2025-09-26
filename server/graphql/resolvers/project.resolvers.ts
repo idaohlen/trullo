@@ -1,7 +1,15 @@
 import mongoose, { type Types } from "mongoose";
-import Project, { ProjectValidationSchema, type Project as ProjectDoc } from "../../models/Project.js";
+import Project, {
+  ProjectValidationSchema,
+  type Project as ProjectDoc,
+} from "../../models/Project.js";
 import User from "../../models/User.js";
-import { validateOrThrow, notFoundIfNull, badInputIfInvalidId } from "../utils/errorHandling.js";
+import {
+  validateOrThrow,
+  notFoundIfNull,
+  badInputIfInvalidId,
+} from "../utils/errorHandling.js";
+import { paginateFind } from "../utils/pagination.js";
 
 type CreateInput = {
   title: string;
@@ -21,34 +29,43 @@ type UpdateInput = {
 class Projects {
   static typeResolvers = {
     id: (doc: ProjectDoc) => String(doc._id),
-    createdAt: (doc: ProjectDoc) => doc.createdAt ? doc.createdAt.toISOString() : null,
-    updatedAt: (doc: ProjectDoc) => doc.updatedAt ? doc.updatedAt.toISOString() : null,
+    createdAt: (doc: ProjectDoc) =>
+      doc.createdAt ? doc.createdAt.toISOString() : null,
+    updatedAt: (doc: ProjectDoc) =>
+      doc.updatedAt ? doc.updatedAt.toISOString() : null,
     membersList: async (doc: ProjectDoc, _args: unknown) => {
       // Combine owner and members, removing duplicates
       const allUserIds = [doc.ownerId, ...(doc.members || [])];
-      const uniqueUserIds = [...new Set(allUserIds.map(id => String(id)))];
-      
+      const uniqueUserIds = [...new Set(allUserIds.map((id) => String(id)))];
+
       return await User.find({ _id: { $in: uniqueUserIds } });
-    }
+    },
   };
 
   /*
     GET MANY
   */
-  async getMany(_: unknown) {
-    return await Project.find();
+  async getMany(
+    _: unknown,
+    { page, limit }: { page?: number; limit?: number }
+  ) {
+    return await paginateFind<ProjectDoc>(Project.find(), { page, limit });
   }
 
   /*
     GET MINE
   */
-  async getMine(_: unknown, _args: unknown, context: { userId: string }) {
-    return await Project.find({
-      $or: [
-        { ownerId: context.userId },
-        { members: context.userId }
-      ]
-    });
+  async getMine(
+    _: unknown,
+    { page, limit }: { page?: number; limit?: number },
+    context: { userId: string }
+  ) {
+    return await paginateFind<ProjectDoc>(
+      Project.find({
+        $or: [{ ownerId: context.userId }, { members: context.userId }],
+      }),
+      { page, limit }
+    );
   }
 
   /*
@@ -75,12 +92,12 @@ class Projects {
 
     // Validate input
     const data = validateOrThrow(ProjectValidationSchema, cleanInput);
-    
+
     // Convert string IDs to ObjectIds for Mongoose
     const mongoData = {
       ...data,
       ownerId: new mongoose.Types.ObjectId(data.ownerId),
-      members: data.members?.map(id => new mongoose.Types.ObjectId(id))
+      members: data.members?.map((id) => new mongoose.Types.ObjectId(id)),
     };
 
     return await Project.create(mongoData);
@@ -91,7 +108,7 @@ class Projects {
   */
   async update(_: unknown, { id, ...input }: UpdateInput) {
     badInputIfInvalidId(id, "Invalid project id", { projectId: id }); // validate ID
-  
+
     // Validate input
     const ProjectUpdateSchema = ProjectValidationSchema.partial();
     const data = validateOrThrow(ProjectUpdateSchema, input);
@@ -110,9 +127,12 @@ class Projects {
   /*
     ADD MEMBER
   */
-  async addMember(_: unknown, { projectId, userId }: { projectId: string; userId: string }) {
-    badInputIfInvalidId(projectId, "Invalid project id", { projectId }); 
-    badInputIfInvalidId(userId, "Invalid user id", { userId }); 
+  async addMember(
+    _: unknown,
+    { projectId, userId }: { projectId: string; userId: string }
+  ) {
+    badInputIfInvalidId(projectId, "Invalid project id", { projectId });
+    badInputIfInvalidId(userId, "Invalid user id", { userId });
 
     const project = await Project.findByIdAndUpdate(
       projectId,
@@ -120,16 +140,19 @@ class Projects {
       { new: true, runValidators: true }
     );
 
-    notFoundIfNull(project, "Project not found", { projectId }); 
+    notFoundIfNull(project, "Project not found", { projectId });
     return project;
   }
 
   /*
     REMOVE MEMBER
   */
-  async removeMember(_: unknown, { projectId, userId }: { projectId: string; userId: string }) {
-    badInputIfInvalidId(projectId, "Invalid project id", { projectId }); 
-    badInputIfInvalidId(userId, "Invalid user id", { userId }); 
+  async removeMember(
+    _: unknown,
+    { projectId, userId }: { projectId: string; userId: string }
+  ) {
+    badInputIfInvalidId(projectId, "Invalid project id", { projectId });
+    badInputIfInvalidId(userId, "Invalid user id", { userId });
 
     const project = await Project.findByIdAndUpdate(
       projectId,
@@ -137,20 +160,25 @@ class Projects {
       { new: true, runValidators: true }
     );
 
-    notFoundIfNull(project, "Project not found", { projectId }); 
+    notFoundIfNull(project, "Project not found", { projectId });
     return project;
   }
-
 
   /*
     JOIN
   */
-  async join(_: unknown, { projectId }: { projectId: string }, context: { userId: string }) {
-    badInputIfInvalidId(projectId, "Invalid project id", { projectId }); 
+  async join(
+    _: unknown,
+    { projectId }: { projectId: string },
+    context: { userId: string }
+  ) {
+    badInputIfInvalidId(projectId, "Invalid project id", { projectId });
 
     // Check if project exists and user is not already a member or owner
     const project = await Project.findById(projectId);
-    const validProject = notFoundIfNull(project, "Project not found", { projectId }); 
+    const validProject = notFoundIfNull(project, "Project not found", {
+      projectId,
+    });
 
     // Check if user is already owner
     if (String(validProject.ownerId) === context.userId) {
@@ -158,9 +186,11 @@ class Projects {
     }
 
     // Check if user is already a member
-    const isAlreadyMember = validProject.members && validProject.members.some((memberId: any) => 
-      String(memberId) === context.userId
-    );
+    const isAlreadyMember =
+      validProject.members &&
+      validProject.members.some(
+        (memberId: any) => String(memberId) === context.userId
+      );
 
     if (isAlreadyMember) {
       throw new Error("You are already a member of this project");
@@ -173,15 +203,19 @@ class Projects {
       { new: true, runValidators: true }
     );
 
-    notFoundIfNull(updatedProject, "Project not found", { projectId }); 
+    notFoundIfNull(updatedProject, "Project not found", { projectId });
     return updatedProject;
   }
 
   /*
     LEAVE
   */
-  async leave(_: unknown, { projectId }: { projectId: string }, context: { userId: string }) {
-    badInputIfInvalidId(projectId, "Invalid project id", { projectId }); 
+  async leave(
+    _: unknown,
+    { projectId }: { projectId: string },
+    context: { userId: string }
+  ) {
+    badInputIfInvalidId(projectId, "Invalid project id", { projectId });
 
     const project = await Project.findByIdAndUpdate(
       projectId,
@@ -189,7 +223,7 @@ class Projects {
       { new: true, runValidators: true }
     );
 
-    notFoundIfNull(project, "Project not found", { projectId }); 
+    notFoundIfNull(project, "Project not found", { projectId });
     return project;
   }
 

@@ -1,3 +1,15 @@
+export interface Paginated<T> {
+  items: T[];
+  totalCount: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  currentPage: number;
+  totalPages: number;
+}
+export type PaginatedProjects = Paginated<Project>;
+export type PaginatedTasks = Paginated<Task>;
+export type PaginatedUsers = Paginated<User>;
+
 export interface User {
   id: string;
   name: string;
@@ -15,6 +27,7 @@ export interface Project {
   title: string
   description?: string
   ownerId: string
+  owner: User
   members: string[]
   membersList: User[]
   createdAt: string
@@ -29,6 +42,7 @@ export interface Task {
   description: string;
   status: TaskStatus;
   assignee: User;
+  projectId: string;
   createdAt: string;
   updatedAt: string;
   finishedAt: string;

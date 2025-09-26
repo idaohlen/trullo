@@ -19,7 +19,7 @@ export async function paginateAggregate<T>(
   basePipeline: PipelineStage[],
   options: PaginationOptions = {}
 ): Promise<PaginatedResult<T>> {
-  const { page = 1, limit = 25 } = options;
+  const { page = 1, limit = 10 } = options;
   const skip = (page - 1) * limit;
 
   // Get total count first
@@ -61,7 +61,7 @@ export async function paginateFind<T>(
   query: any,
   options: PaginationOptions = {}
 ): Promise<PaginatedResult<T>> {
-  const { page = 1, limit = 25 } = options;
+  const { page = 1, limit = 10 } = options;
   const skip = (page - 1) * limit;
 
   // Get total count
@@ -69,11 +69,9 @@ export async function paginateFind<T>(
 
   // Get paginated items
   let items: T[];
-  if (limit > 0) {
-    items = await query.skip(skip).limit(limit);
-  } else {
-    items = await query;
-  }
+
+  if (limit > 0) items = await query.skip(skip).limit(limit);
+  else items = await query;
 
   const totalPages = limit > 0 ? Math.ceil(totalCount / limit) : 1;
 

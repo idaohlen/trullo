@@ -34,6 +34,7 @@
           size="sm"
           @click="() => handlePageClick(p)"
           class="h-9 w-9"
+          :class="p === page ? 'text-black' : ''"
         >
           {{ p }}
         </Button>

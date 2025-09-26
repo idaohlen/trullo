@@ -6,6 +6,31 @@ export const GET_TASK_STATUS_VALUES = gql`
   }
 `;
 
+export const GET_TASK = gql`
+  query GetTask($id: ID!) {
+    task(id: $id) {
+      id
+      title
+      description
+      status
+      assignedTo
+      assignee {
+        id
+        name
+        email
+      }
+      finisher {
+        id
+        name
+        email
+      }
+      createdAt
+      updatedAt
+      finishedAt
+    }
+  }
+`;
+
 export const GET_TASKS = gql`
   query GetTasks($page: Int, $limit: Int) {
     tasks(page: $page, limit: $limit) {
@@ -73,52 +98,34 @@ export const GET_PROJECT_TASKS = gql`
 `;
 
 export const GET_MY_TASKS = gql`
-  query GeMyTasks {
-    myTasks {
-      id
-      title
-      description
-      status
-      assignedTo
-      assignee {
+  query GetMyTasks($page: Int, $limit: Int) {
+    myTasks(page: $page, limit: $limit) {
+      items {
         id
-        name
-        email
+        title
+        description
+        status
+        assignedTo
+        assignee {
+          id
+          name
+          email
+        }
+        finisher {
+          id
+          name
+          email
+        }
+        projectId
+        createdAt
+        updatedAt
+        finishedAt
       }
-      finisher {
-        id
-        name
-        email
-      }
-      projectId
-      createdAt
-      updatedAt
-      finishedAt
-    }
-  }
-`;
-
-export const GET_TASK = gql`
-  query GetTask($id: ID!) {
-    task(id: $id) {
-      id
-      title
-      description
-      status
-      assignedTo
-      assignee {
-        id
-        name
-        email
-      }
-      finisher {
-        id
-        name
-        email
-      }
-      createdAt
-      updatedAt
-      finishedAt
+      totalCount
+      hasNextPage
+      hasPreviousPage
+      currentPage
+      totalPages
     }
   }
 `;
