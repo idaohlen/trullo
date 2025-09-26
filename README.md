@@ -47,12 +47,12 @@ Här är testanvändare för en user och en admin från seeden du kan använda f
 
 ```
 # USER
-email: user@trello.com
+email: user@trullo.com
 password: Password1!
 
 # ADMIN
-email: admin@trello.com
+email: admin@trullo.com
 password: Password1!
 ```
 
-I `/server/scripts/seed-data/users.js` hittar du ännu fler dummy-users om du hellre vill logga in med dem istället. Eller så registrerar du en helt ny användare genom REST- eller GraphQL-API:et, alternativt direkt i frontend. Nya användare får automatiskt rollen `user` och har begränsad åtkomst i API:erna och i frontend, så roll behöver ändras manuellt i databasen eller genom en admin-användare.
+I `/server/scripts/seed-data/project.js` hittar du ännu fler dummy-users om du hellre vill logga in med dem istället. Eller så registrerar du en helt ny användare genom REST- eller GraphQL-API:et, alternativt direkt i frontend. Nya användare får automatiskt rollen `user` och har begränsad åtkomst i API:erna och i frontend, så roll behöver ändras manuellt i databasen eller genom en admin-användare.
