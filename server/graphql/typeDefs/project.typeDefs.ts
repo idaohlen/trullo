@@ -9,7 +9,7 @@ export default `#graphql
     addProject(
       title: String!
       description: String
-      owner: ID!
+      ownerId: ID!
       members: [ID]
     ): Project @auth
 
@@ -17,7 +17,7 @@ export default `#graphql
       id: ID!
       title: String
       description: String
-      owner: ID
+      ownerId: ID
       members: [ID]
     ): Project @auth
 
@@ -28,7 +28,8 @@ export default `#graphql
     id: ID!
     title: String!
     description: String
-    owner: ID!
+    ownerId: ID!
+    owner: [User]
     members: [ID]
     membersList: [User]
     createdAt: String

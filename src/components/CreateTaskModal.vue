@@ -25,66 +25,28 @@
         </div>
 
         <div class="flex gap-2">
-          <Select v-model="status">
-            <SelectTrigger class="w-[180px]">
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem
-                  :value="statusOption"
-                  v-for="statusOption in statusValuesData.taskStatusValues ||
-                  []"
-                  :key="statusOption"
-                >
-                  {{ statusOption }}
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <BaseSelect
+            v-model="status"
+            :options="statusValues"
+            placeholder="Select status"
+            triggerClass="w-[180px]"
+          />
 
-          <Popover v-model:open="userPopoverOpen">
-            <PopoverTrigger as-child>
-              <Button
-                type="button"
-                variant="outline"
-                class="justify-between flex-1"
-              >
-              <div class="truncate">{{ selectedUser?.email ?? "Choose user" }}</div>
-                <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent class="w-[300px] p-0">
-              <Command>
-                <div>
-                  <CommandInput
-                    v-model="userSearch"
-                    placeholder="Search users..."
-                    class="flex-1"
-                  />
-                </div>
-                <CommandList>
-                  <CommandEmpty>No user found.</CommandEmpty>
-                  <CommandGroup>
-                    <CommandItem
-                      v-for="user in filteredUsers"
-                      :key="user.id"
-                      :value="user.id"
-                      @select="selectUser(user.id)"
-                      class="px-3 py-2"
-                      :class="{ 'bg-accent': user.id === assignedUserId }"
-                    >
-                      {{ user.email }}
-                      <Check
-                        v-if="user.id === assignedUserId"
-                        class="ml-auto h-4 w-4"
-                      />
-                    </CommandItem>
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <BasePopover
+            v-model:is-open="userPopoverOpen"
+            v-model:search-value="userSearch"
+            :options="users"
+            :selected-value="assignedUserId"
+            :display-text="displayText"
+            search-placeholder="Search users..."
+            empty-message="No user found."
+            trigger-class="justify-between flex-1"
+            content-class="w-[300px] p-0"
+            :get-label="(user: User) => user.email"
+            :get-value="(user: User) => user.id"
+            :get-key="(user: User) => user.id"
+            @select="(user: User) => selectUser(user.id)"
+          />
         </div>
 
         <div class="flex justify-end gap-2 mt-4">
@@ -111,28 +73,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  // SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from "@/components/ui/command";
+
 
 import {
   ADD_TASK,
@@ -146,7 +87,8 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import LoaderOverlay from "@/components/LoaderOverlay.vue";
-import { Check, ChevronsUpDown } from "lucide-vue-next";
+import BaseSelect from "./BaseSelect.vue";
+import BasePopover from "./BasePopover.vue";
 
 const props = defineProps({
   isOpen: Boolean,
@@ -183,16 +125,19 @@ const userPopoverOpen = ref(false);
 const userSearch = ref("");
 
 const selectedUser = computed(() => {
-  const users = usersData.value?.users ?? [];
-  return users.find((u: User) => u.id === assignedUserId.value) || null;
+  return users.value.find((u: User) => u.id === assignedUserId.value) || null;
 });
 
-const filteredUsers = computed(() => {
-  const users = usersData.value?.users ?? [];
-  if (!userSearch.value) return users;
-  return users.filter((u: User) =>
-    u.email.toLowerCase().includes(userSearch.value.toLowerCase())
-  );
+const displayText = computed(() => {
+  return selectedUser.value?.email ?? "Choose user";
+});
+
+const statusValues = computed(() => {
+  return statusValuesData.value?.taskStatusValues ?? [];
+});
+
+const users = computed(() => {
+  return usersData.value?.users ?? [];
 });
 
 function selectUser(id: string) {
@@ -220,7 +165,7 @@ watch(
       title.value = task.title || "";
       description.value = task.description || "";
       status.value = task.status || "";
-      assignedUserId.value = task.user?.id ? String(task.user.id) : null;
+      assignedUserId.value = task.assignee?.id ? String(task.assignee.id) : null;
     } else {
       title.value = "";
       description.value = "";

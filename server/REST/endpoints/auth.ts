@@ -36,14 +36,15 @@ async function registerUser(req: Request, res: Response, next: NextFunction) {
 
     const user = await User.create(parseResult.data);
 
+    // Check JWT secret
     const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      throw new Error("JWT_SECRET environment variable is not set");
-    }
+    if (!jwtSecret) throw new Error("JWT_SECRET environment variable is not set");
 
+    // Create token
     const token = jwt.sign({ userId: user._id }, jwtSecret, {
       expiresIn: "1d",
     });
+    
     res
       .status(200)
       .json({ status: "SUCCESS", message: "Created new user", data: user, token });
@@ -60,9 +61,7 @@ async function loginUser(req: Request, res: Response, next: NextFunction) {
     }
 
     const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      throw new Error("JWT_SECRET environment variable is not set");
-    }
+    if (!jwtSecret) throw new Error("JWT_SECRET environment variable is not set");
 
     const token = jwt.sign({ userId: user._id }, jwtSecret, {
       expiresIn: "1d",

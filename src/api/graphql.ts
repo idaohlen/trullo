@@ -62,6 +62,46 @@ export const DELETE_USER = gql`
   }
 `;
 
+export const ADD_PROJECT = gql`
+  mutation AddProject(
+    $title: String!
+    $description: String
+    $ownerId: ID!
+    $members: [ID]
+  ) {
+    addProject(
+      title: $title
+      description: $description
+      ownerId: $ownerId
+      members: $members
+    ) {
+      id
+      title
+      description
+      ownerId
+      members
+      membersList {
+        id
+        name
+        email
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_MY_PROJECTS = gql`
+  query GetMyProjects {
+    myProjects {
+      id
+      title
+      description
+      membersList
+    }
+  }
+`;
+
 export const GET_TASK_STATUS_VALUES = gql`
   query GetTaskStatusValues {
     taskStatusValues
@@ -109,7 +149,12 @@ export const GET_TASK = gql`
 `;
 
 export const ADD_TASK = gql`
-  mutation AddTask($title: String!, $description: String, $status: TaskStatus, $assignedTo: ID) {
+  mutation AddTask(
+    $title: String!
+    $description: String
+    $status: TaskStatus
+    $assignedTo: ID
+  ) {
     addTask(
       title: $title
       description: $description

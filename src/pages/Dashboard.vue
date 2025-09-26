@@ -1,114 +1,103 @@
 <template>
-  <div class="mb-3 text-right">
-    <Button @click="openCreateTaskModal">Add task</Button>
+  <div class="flex gap-4 justify-between mb-2">
+    <h2 class="text-white text-3xl font-bold mb-2">My Projects</h2>
+    <Button @click="handleCreateProject">Create new project</Button>
+  </div>
+  
+  <Card class="p-2 mb-12">
+    <div v-if="loading">Loading...</div>
+    <div v-else-if="error">Error: {{ error.message }}</div>
+    <template v-else>
+      <div v-if="myProjects.length == 0">You do not have any projects.</div>
+      <div v-else class="grid sm:grid-cols-2 gap-2">
+        <RouterLink 
+          v-for="project in myProjects" 
+          :key="project.id"
+          :to="`/projects/${project.id}`"
+          class="block"
+        >
+          <Card class="group p-4 hover:bg-gray-50 transition-colors cursor-pointer gap-2">
+            <div class="font-bold mb-2 group-hover:underline underline-offset-4">{{ project.title }}</div>
+            <div class="flex justify-between items-center">
+              <Badge variant="secondary">{{ project.membersList.length }} members</Badge>
+              <span class="text-sm text-gray-500">View details →</span>
+            </div>
+          </Card>
+        </RouterLink>
+      </div>
+    </template>
+  </Card>
+
+  <div class="flex gap-4 justify-between mb-2">
+     <h2 class="text-white text-3xl font-bold mb-2">My Tasks</h2>
+    <Button @click="handleCreateTask">Add task</Button>
   </div>
   <Card class="p-2">
     <div v-if="loading">Loading...</div>
     <div v-else-if="error">Error: {{ error.message }}</div>
     <div v-else class="grid grid-cols-2 gap-2">
-      <Card
-        v-for="task in (result?.tasks ?? []) as Task[]"
-        :key="task.id as string"
-        class="p-0 rounded-sm"
-        :class="{ 'task-done': !!task.finishedAt }"
-      >
-        <div class="p-3">
-          <div class="flex justify-between">
-            <div
-              class="font-bold hover:underline underline-offset-4 hover:cursor-pointer"
-              @click="openTaskDetailsModal(task)"
-            >
-              {{ task.title }}
-            </div>
-          <StatusBadge :data="task.status" />
-          </div>
-          <div v-if="task.description" class="text-xs truncate text-gray-400">
-            {{ getFirstLine(task.description) }}
-          </div>
-          <Badge
-            v-if="task.assignee"
-            variant="outline"
-            class="text-[.7rem] bg-white mt-2"
-            >{{ task.assignee.name }}</Badge
-          >
-        </div>
-      </Card>
+      <TaskCardList :data="tasks"/>
     </div>
   </Card>
 
-  <CreateTaskModal
-    :isOpen="isCreateTaskOpen"
-    :onClose="closeCreateTaskModal"
-    :task="currentTask"
-  />
-
-  <TaskDetailsModal
-    :isOpen="isTaskDetailsOpen"
-    :onClose="closeTaskDetailsModal"
-    :task="currentTask"
-    :onOpenEdit="handleEdit"
-  />
 </template>
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed } from "vue";
 import { useQuery } from "@vue/apollo-composable";
-import MarkdownIt from "markdown-it";
-
-import { GET_TASKS } from "../api/graphql";
-import type { GetTasksResult } from "@/types";
-import type { Task } from "@/types";
+import { gql } from "@apollo/client/core";
+import type { Task, Project } from "@/types";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useModal } from "@/composables/useModal";
+import TaskCardList from "@/components/TaskCardList.vue";
 import { Badge } from "@/components/ui/badge";
 
-import CreateTaskModal from "@/components/CreateTaskModal.vue";
-import TaskDetailsModal from "@/components/TaskDetailsModal.vue";
-import StatusBadge from "@/components/StatusBadge.vue";
+const { openModal } = useModal();
 
-const md = new MarkdownIt();
+type DashboardQueryResult = {
+  tasks: Task[];
+  myProjects: Project[];
+};
 
-const { result, loading, error } = useQuery<GetTasksResult>(GET_TASKS);
+const { result, loading, error } = useQuery<DashboardQueryResult>(gql`
+  query GetTasks {
+    tasks {
+      id
+      title
+      description
+      status
+      # assignedTo
+      assignee {
+        id
+        name
+        # email
+      }
+      # createdAt
+      # updatedAt
+      finishedAt
+    }
+    myProjects {
+      id 
+      title 
+      description 
+      membersList {
+        id
+        name
+        email
+      }
+    }
+  }
+`);
 
-const currentTask = ref<Task | null>(null);
-const isCreateTaskOpen = ref(false);
-const isTaskDetailsOpen = ref(false);
+const myProjects = computed(() => result.value?.myProjects ?? []);
+const tasks = computed(() => result.value?.tasks ?? []);
 
-function openCreateTaskModal(task: Task | null = null) {
-  currentTask.value = task;
-  isCreateTaskOpen.value = true;
+function handleCreateTask() {
+  openModal("CreateTask");
 }
 
-function closeCreateTaskModal() {
-  isCreateTaskOpen.value = false;
-  if (!isTaskDetailsOpen.value) currentTask.value = null;
-}
-
-function openTaskDetailsModal(task: Task) {
-  currentTask.value = task;
-  isTaskDetailsOpen.value = true;
-}
-
-function closeTaskDetailsModal() {
-  isTaskDetailsOpen.value = false;
-  if (!isCreateTaskOpen.value) currentTask.value = null;
-}
-
-function handleEdit(task: Task) {
-  closeTaskDetailsModal();
-  // Wait for the details modal to close before opening the edit modal
-  setTimeout(() => {
-    openCreateTaskModal(task);
-  }, 0);
-}
-
-function getFirstLine(markdown: string): string {
-  // Convert markdown to HTML
-  const html = md.renderInline(markdown);
-  // Create a temporary element to extract text
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  // Get the text content and split by line
-  return div.textContent?.split("\n")[0] ?? "";
+function handleCreateProject() {
+  openModal("CreateProject");
 }
 </script>

@@ -1,4 +1,4 @@
-import type { Types } from "mongoose";
+import mongoose, { type Types } from "mongoose";
 import Project, { ProjectValidationSchema, type Project as ProjectDoc } from "../../models/Project.js";
 import User from "../../models/User.js";
 import { validateOrThrow, notFoundIfNull, badInputIfInvalidId } from "../utils/errorHandling.js";
@@ -6,15 +6,16 @@ import { validateOrThrow, notFoundIfNull, badInputIfInvalidId } from "../utils/e
 type CreateInput = {
   title: string;
   description?: string;
-  owner: Types.ObjectId | string;
-  members: [Types.ObjectId | string];
+  ownerId: Types.ObjectId | string;
+  members?: Types.ObjectId[] | string[];
 };
 
 type UpdateInput = {
-  title: string;
+  id: string;
+  title?: string;
   description?: string;
-  owner?: Types.ObjectId | string;
-  members?: [Types.ObjectId | string];
+  ownerId?: Types.ObjectId | string;
+  members?: Types.ObjectId[] | string[];
 };
 
 class Projects {
@@ -23,7 +24,11 @@ class Projects {
     createdAt: (doc: ProjectDoc) => doc.createdAt ? doc.createdAt.toISOString() : null,
     updatedAt: (doc: ProjectDoc) => doc.updatedAt ? doc.updatedAt.toISOString() : null,
     membersList: async (doc: ProjectDoc, _args: unknown) => {
-      return await User.find({ _id: { $in: doc.members } });
+      // Combine owner and members, removing duplicates
+      const allUserIds = [doc.ownerId, ...(doc.members || [])];
+      const uniqueUserIds = [...new Set(allUserIds.map(id => String(id)))];
+      
+      return await User.find({ _id: { $in: uniqueUserIds } });
     }
   };
 
@@ -38,7 +43,12 @@ class Projects {
     GET MINE
   */
   async getMine(_: unknown, _args: unknown, context: { userId: string }) {
-    return await Project.find({ members: context.userId });
+    return await Project.find({
+      $or: [
+        { ownerId: context.userId },
+        { members: context.userId }
+      ]
+    });
   }
 
   /*
@@ -56,8 +66,23 @@ class Projects {
     CREATE
   */
   async create(_: unknown, input: CreateInput) {
+    // Clean up null values - convert null to undefined for optional fields
+    const cleanInput = {
+      ...input,
+      description: input.description === null ? undefined : input.description,
+      members: input.members === null ? undefined : input.members,
+    };
+
     // Validate input
-    const data = validateOrThrow(ProjectValidationSchema, input);
+    const data = validateOrThrow(ProjectValidationSchema, cleanInput);
+    
+    // Convert string IDs to ObjectIds for Mongoose
+    const mongoData = {
+      ...data,
+      ownerId: new mongoose.Types.ObjectId(data.ownerId),
+      members: data.members?.map(id => new mongoose.Types.ObjectId(id))
+    };
+
     return await Project.create(data);
   }
 

@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia';
-import type { User } from '@/types';
+import { defineStore } from "pinia";
+import type { User } from "@/types";
 
-export const useAuthStore = defineStore('auth', {
+export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null as User | null,
     loading: false,

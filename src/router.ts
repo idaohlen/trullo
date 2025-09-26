@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard.vue";
 import NotFound from "./pages/NotFound.vue";
 import MyProfile from "./pages/MyProfile.vue";
 import Admin from "./pages/Admin.vue";
+import ProjectDetail from "./pages/ProjectDetail.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -38,6 +39,12 @@ const routes: RouteRecordRaw[] = [
         name: "Admin",
         component: Admin,
         meta: { requiresAuth: true, requiresAdmin: true },
+      },
+      {
+        path: "projects/:id",
+        name: "ProjectDetail",
+        component: ProjectDetail,
+        meta: { requiresAuth: true },
       },
     ],
   },

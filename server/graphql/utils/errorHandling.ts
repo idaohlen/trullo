@@ -24,7 +24,8 @@ export function validateOrThrow<T>(schema: ZodType<T>, input: unknown): T {
       path: e.path.join("."),
       message: e.message
     }));
-    throw new GraphQLError("Validation error", {
+    console.log("Validation failed:", formatted); // Debug log
+    throw new GraphQLError(`Validation error: ${formatted.map(e => `${e.path}: ${e.message}`).join(", ")}`, {
       extensions: { code: "BAD_USER_INPUT", errors: formatted }
     });
   }

@@ -15,9 +15,9 @@
         <Check class="size-4" />
         <div class="text-[.8rem]">
           Finished
-          <span v-if="task.user"
-            >by <span class="font-semibold">{{ task.user.name }}</span></span
-          >
+          <span v-if="task.user">
+            by <span class="font-semibold">{{ task.user.name }}</span>
+          </span>
           at
           <Badge class="bg-green-100 text-green-700">{{
             format(new Date(task.finishedAt), "ii MMM yyyy HH:mm")
@@ -34,10 +34,9 @@
         }}</Badge>
       </div>
       <DialogFooter>
-        <Button variant="outline" class="text-red-500" @click="handleDelete"
-          ><Trash /> Delete</Button
-        >
-        <Button variant="outline" @click="handleEdit"><Edit /> Edit</Button>
+        <Button variant="outline" class="text-red-500" @click="handleDelete">
+          <Trash /> Delete</Button>
+        <Button variant="outline" @click="handleEdit(task)"><Edit /> Edit</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
@@ -47,6 +46,7 @@
 import { useMutation } from "@vue/apollo-composable";
 import VueMarkdown from "vue-markdown-render";
 import { format } from "date-fns";
+import type { Task } from "@/types";
 import { DELETE_TASK, GET_TASKS } from "../api/graphql";
 import {
   Dialog,
@@ -61,13 +61,14 @@ import { Card } from "@/components/ui/card";
 import { Check, Edit, Trash } from "lucide-vue-next";
 import { Badge } from "./ui/badge";
 import StatusBadge from "./StatusBadge.vue";
+import { useModal } from "@/composables/useModal";
+const { openModal } = useModal();
 
 const props = defineProps([
   "task",
   "isOpen",
   "onClose",
   "onTaskDeleted",
-  "onOpenEdit",
 ]);
 
 const { mutate: deleteTask } = useMutation(DELETE_TASK, {
@@ -75,6 +76,10 @@ const { mutate: deleteTask } = useMutation(DELETE_TASK, {
     { query: GET_TASKS }
   ],
 });
+
+function handleEdit(task: Task) {
+  openModal("CreateTask", task);
+}
 
 function handleClose() {
   props.onClose();
@@ -86,8 +91,4 @@ async function handleDelete() {
   props.onClose();
 }
 
-async function handleEdit() {
-  if (props.onOpenEdit) props.onOpenEdit(props.task);
-  props.onClose();
-}
 </script>
