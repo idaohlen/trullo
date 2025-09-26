@@ -15,8 +15,8 @@ export interface Project {
   title: string
   description?: string
   ownerId: string
-  members: [string]
-  membersList: [User]
+  members: string[]
+  membersList: User[]
   createdAt: string
   updatedAt: string
 }

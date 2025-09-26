@@ -63,7 +63,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useQuery, useMutation } from "@vue/apollo-composable";
-import { GET_USERS, DELETE_USER, GET_TASKS } from "@/api/graphql";
+import { GET_TASKS } from "@/api/task.gql";
+import { GET_USERS, DELETE_USER } from "@/api/user.gql";
 import type { User } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

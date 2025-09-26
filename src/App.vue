@@ -47,7 +47,7 @@ import { onMounted, ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useLoading } from "@/stores/loading";
 import { useQuery } from "@vue/apollo-composable";
-import { GET_ME } from "@/api/graphql";
+import { GET_ME } from "@/api/user.gql";
 import { useModal } from "@/composables/useModal";
 import LoaderOverlay from "@/components/LoaderOverlay.vue";
 import CreateTaskModal from "@/components/CreateTaskModal.vue";

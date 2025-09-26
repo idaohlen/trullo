@@ -26,7 +26,7 @@ import { Card } from "@/components/ui/card";
 
 import { Badge } from "@/components/ui/badge";
 import TaskCardList from "@/components/TaskCardList.vue";
-import { GET_MY_TASKS } from "@/api/graphql";
+import { GET_MY_TASKS } from "@/api/task.gql";
 
 type QueryResult = {
   myTasks: Task[];

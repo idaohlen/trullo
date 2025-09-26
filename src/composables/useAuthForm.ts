@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { z } from "zod";
 import { useMutation } from "@vue/apollo-composable";
 import { useRouter } from "vue-router";
-import { LOGIN_USER, REGISTER_USER } from "@/api/graphql";
+import { LOGIN_USER, REGISTER_USER } from "@/api/auth.gql";
 import { useAuth } from "./useAuth";
 import { useLoading } from "@/stores/loading";
 

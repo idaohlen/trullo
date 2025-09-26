@@ -8,20 +8,29 @@
           <ClipboardCheck /> Trullo
         </Button>
       </router-link>
-      <div v-if="isLoggedIn">
+      <div v-if="isLoggedIn" class="flex gap-1">
+        <router-link to="/">
+          <Button variant="ghost" class="text-white">
+            <Clipboard />
+            Dashboard
+          </Button>
+        </router-link>
         <router-link to="/my-profile">
-          <Button variant="link" class="font-bold uppercase text-white">
+          <Button variant="ghost" class="text-white">
+            <User />
             My Profile
           </Button>
         </router-link>
         <div v-if="isAdmin" class="contents">
         <router-link to="/admin">
-          <Button variant="link" class="font-bold uppercase text-white">
+          <Button variant="ghost" class="text-white">
+            <LockKeyhole />
             Admin
           </Button>
         </router-link>
         </div>
         <Button variant="outline" @click="logout">
+          <LogOut />
           Logout
         </Button>
       </div>
@@ -40,8 +49,8 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useMutation, useApolloClient } from "@vue/apollo-composable";
-import { ClipboardCheck } from "lucide-vue-next";
-import { LOGOUT_USER } from "../api/graphql";
+import { User, Clipboard, ClipboardCheck, LockKeyhole, LogOut } from "lucide-vue-next";
+import { LOGOUT_USER } from "../api/auth.gql";
 import { useAuth } from "../composables/useAuth";
 import { Button } from "@/components/ui/button";
 

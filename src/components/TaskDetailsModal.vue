@@ -15,8 +15,8 @@
         <Check class="size-4" />
         <div class="text-[.8rem]">
           Finished
-          <span v-if="task.user">
-            by <span class="font-semibold">{{ task.user.name }}</span>
+          <span v-if="task.finisher">
+            by <span class="font-semibold">{{ task.finisher.name }}</span>
           </span>
           at
           <Badge class="bg-green-100 text-green-700">{{
@@ -27,10 +27,10 @@
       <Card class="p-3 text-sm rounded-sm" v-if="task.description">
         <vue-markdown :source="task.description" />
       </Card>
-      <div v-if="task.user" class="text-[.8rem]">
+      <div v-if="task.assignee" class="text-[.8rem]">
         Assigned to
         <Badge variant="outline" class="bg-white mt-2 ml-1">{{
-          task.user.name
+          task.assignee.name
         }}</Badge>
       </div>
       <DialogFooter>
@@ -47,7 +47,7 @@ import { useMutation } from "@vue/apollo-composable";
 import VueMarkdown from "vue-markdown-render";
 import { format } from "date-fns";
 import type { Task } from "@/types";
-import { DELETE_TASK, GET_TASKS } from "../api/graphql";
+import { DELETE_TASK, GET_TASKS } from "../api/task.gql";
 import {
   Dialog,
   DialogContent,

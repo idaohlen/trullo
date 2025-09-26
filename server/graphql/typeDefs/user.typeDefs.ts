@@ -18,7 +18,7 @@ export default `#graphql
     updateUserRole(
       userId: ID!
       role: Role!
-    ): User @auth(role: "ADMIN")
+    ): User @auth @admin
     
     deleteUser(id: ID!): Boolean @auth(role: "ADMIN", allowSelf: true, selfArg: "id")
   }
@@ -36,5 +36,14 @@ export default `#graphql
     role: Role!
     createdAt: String
     updatedAt: String
+  }
+
+  type PaginatedUsers {
+    items: [User!]!
+    totalCount: Int!
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    currentPage: Int!
+    totalPages: Int!
   }
 `;

@@ -41,7 +41,7 @@
 import { ref } from "vue";
 import { useMutation, useApolloClient } from "@vue/apollo-composable";
 import { useRouter } from "vue-router";
-import { DELETE_USER } from "@/api/graphql";
+import { DELETE_USER } from "@/api/user.gql";
 import {
   Card,
   CardContent,

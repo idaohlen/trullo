@@ -5,8 +5,8 @@
         <Badge variant="outline" class="text-white">{{ myProjects.length }}</Badge>
       </div>
       <div class="flex gap-2">
-        <Button @click="handleJoinProject">Join</Button>
-        <Button @click="handleCreateProject">Create new</Button>
+        <Button variant="secondary" class="text-sky-700" @click="handleJoinProject"><Users /> Join</Button>
+        <Button variant="secondary" class="text-emerald-700" @click="handleCreateProject"><CopyPlus /> Create new</Button>
 
       </div>
   </div>
@@ -27,7 +27,7 @@
             <div class="font-bold mb-2 group-hover:underline underline-offset-4">{{ project.title }}</div>
             <div class="flex justify-between items-center">
               <Badge variant="secondary">{{ project.membersList.length }} members</Badge>
-              <span class="text-sm text-gray-500">View details →</span>
+              <span class="text-sm text-gray-500">Go to project →</span>
             </div>
           </Card>
         </RouterLink>
@@ -43,7 +43,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useModal } from "@/composables/useModal";
-import { GET_MY_PROJECTS } from "@/api/graphql";
+import { GET_MY_PROJECTS } from "@/api/project.gql";
+import { CopyPlus, Users } from "lucide-vue-next";
 
 const { openModal } = useModal();
 

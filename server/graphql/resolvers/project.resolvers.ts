@@ -141,6 +141,58 @@ class Projects {
     return project;
   }
 
+
+  /*
+    JOIN
+  */
+  async join(_: unknown, { projectId }: { projectId: string }, context: { userId: string }) {
+    badInputIfInvalidId(projectId, "Invalid project id", { projectId }); 
+
+    // Check if project exists and user is not already a member or owner
+    const project = await Project.findById(projectId);
+    const validProject = notFoundIfNull(project, "Project not found", { projectId }); 
+
+    // Check if user is already owner
+    if (String(validProject.ownerId) === context.userId) {
+      throw new Error("You are already the owner of this project");
+    }
+
+    // Check if user is already a member
+    const isAlreadyMember = validProject.members && validProject.members.some((memberId: any) => 
+      String(memberId) === context.userId
+    );
+
+    if (isAlreadyMember) {
+      throw new Error("You are already a member of this project");
+    }
+
+    // Add user to project members
+    const updatedProject = await Project.findByIdAndUpdate(
+      projectId,
+      { $addToSet: { members: new mongoose.Types.ObjectId(context.userId) } }, // $addToSet prevents duplicates
+      { new: true, runValidators: true }
+    );
+
+    notFoundIfNull(updatedProject, "Project not found", { projectId }); 
+    return updatedProject;
+  }
+
+  /*
+    LEAVE
+  */
+  async leave(_: unknown, { projectId }: { projectId: string }, context: { userId: string }) {
+    badInputIfInvalidId(projectId, "Invalid project id", { projectId }); 
+
+    const project = await Project.findByIdAndUpdate(
+      projectId,
+      { $pull: { members: new mongoose.Types.ObjectId(context.userId) } }, // Remove current user from members
+      { new: true, runValidators: true }
+    );
+
+    notFoundIfNull(project, "Project not found", { projectId }); 
+    return project;
+  }
+
   /*
     DELETE
   */

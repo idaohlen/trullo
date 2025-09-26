@@ -1,13 +1,13 @@
 export default [
   {
-    title: "Trello",
+    title: "Trullo",
     description: "Building the next generation project management platform with modern web technologies and intuitive user experience.",
-    owner: { name: "Admin User", email: "admin@trello.com", password: "Password1!", role: "ADMIN" },
+    owner: { name: "Admin User", email: "admin@trullo.com", password: "Password1!", role: "ADMIN" },
     members: [
-      { name: "Regular User", email: "user@trello.com", password: "Password1!" },
-      { name: "Astrid Lindgren", email: "astrid@trello.com", password: "ReactExpert#37" },
-      { name: "Erik Johansson", email: "erik@trello.com", password: "NodeMaster$38" },
-      { name: "Ingrid Bergström", email: "ingrid@trello.com", password: "UXDesigner!39" }
+      { name: "Regular User", email: "user@trullo.com", password: "Password1!" },
+      { name: "Astrid Lindgren", email: "astrid@trullo.com", password: "ReactExpert#37" },
+      { name: "Erik Johansson", email: "erik@trullo.com", password: "NodeMaster$38" },
+      { name: "Ingrid Bergström", email: "ingrid@trullo.com", password: "UXDesigner!39" }
     ],
     tasks: [
       { title: "Implement drag & drop functionality", description: "Add React Beautiful DND for card and list reordering", status: "IN_PROGRESS" },

@@ -13,6 +13,10 @@ const taskSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  finishedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   projectId: {
   type: mongoose.Schema.Types.ObjectId,
     ref: "Project",
@@ -25,8 +29,12 @@ export const TaskValidationSchema = z.object({
   description: z.string().optional(),
   status: z.enum(TASK_STATUSES).optional(),
   assignedTo: z.string().optional(),
+  finishedBy: z.string().optional(),
+  finishedAt: z.date().optional(),
   projectId: z.string().min(1, "A project is required"),
 });
 
 export type Task = InferSchemaType<typeof taskSchema> & Document;
-export default mongoose.models.Task || mongoose.model("Task", taskSchema, "tasks");
+
+if (mongoose.models.Task) delete mongoose.models.Task;
+export default mongoose.model("Task", taskSchema, "tasks");

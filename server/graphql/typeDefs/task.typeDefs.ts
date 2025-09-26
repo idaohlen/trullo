@@ -1,10 +1,10 @@
 export default `#graphql
   type Query {
-    task(id: ID!):                 Task          @auth
-    tasks:                        [Task]         @auth(role: "ADMIN")
-    projectTasks(projectId: ID!): [Task]         @auth
-    myTasks:                      [Task]         @auth
-    taskStatusValues:             [TaskStatus!]!
+    task(id: ID!):                                       Task           @auth
+    tasks(page: Int, limit: Int):                        PaginatedTasks @auth @admin
+    projectTasks(projectId: ID!, page: Int, limit: Int): PaginatedTasks @auth
+    myTasks:                                            [Task]          @auth
+    taskStatusValues:                                   [TaskStatus!]!
   }
 
   type Mutation {
@@ -14,7 +14,7 @@ export default `#graphql
       status: TaskStatus
       assignedTo: ID
       projectId: ID!
-    ): Task @auth
+    ): Task @auth @member(arg: "projectId")
 
     updateTask(
       id: ID!
@@ -44,7 +44,18 @@ export default `#graphql
     finishedAt: String
     assignedTo: ID
     assignee: User
+    finishedBy: ID
+    finisher: User
     projectId: ID
     project: Project
+  }
+
+  type PaginatedTasks {
+    items: [Task!]!
+    totalCount: Int!
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    currentPage: Int!
+    totalPages: Int!
   }
 `;

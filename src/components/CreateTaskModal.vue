@@ -47,15 +47,17 @@
             :get-key="(user: User) => user.id"
             @select="(user: User) => selectUser(user.id)"
           />
+
+          <Button type="button" variant="outline" size="icon" @click="handleClearAssignee"><Eraser /></Button>
         </div>
 
         <div class="flex justify-end gap-2 mt-4">
-          <Button type="button" variant="outline" @Click="handleClose"
-            >Cancel</Button
-          >
-          <Button type="submit">{{
-            isEdit ? "Save changes" : "Create task"
-          }}</Button>
+          <Button type="button" variant="outline" @Click="handleClose">
+            Cancel
+            </Button>
+          <Button type="submit">
+            {{ isEdit ? "Save changes" : "Create task" }}
+          </Button>
         </div>
       </form>
     </DialogContent>
@@ -74,15 +76,14 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-
 import {
   ADD_TASK,
   UPDATE_TASK,
   GET_TASK_STATUS_VALUES,
   GET_TASKS,
   GET_PROJECT_TASKS,
-  GET_USERS,
-} from "../api/graphql";
+} from "../api/task.gql";
+import { GET_USERS } from "../api/user.gql";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -90,6 +91,7 @@ import { Label } from "./ui/label";
 import BaseSelect from "./BaseSelect.vue";
 import BasePopover from "./BasePopover.vue";
 import { useLoading } from "@/stores/loading";
+import { Eraser } from "lucide-vue-next";
 
 const props = defineProps({
   isOpen: Boolean,
@@ -129,21 +131,10 @@ const assignedUserId = ref<string | null>(null);
 const userPopoverOpen = ref(false);
 const userSearch = ref("");
 
-const selectedUser = computed(() => {
-  return users.value.find((u: User) => u.id === assignedUserId.value) || null;
-});
-
-const displayText = computed(() => {
-  return selectedUser.value?.email ?? "Choose user";
-});
-
-const statusValues = computed(() => {
-  return statusValuesData.value?.taskStatusValues ?? [];
-});
-
-const users = computed(() => {
-  return usersData.value?.users ?? [];
-});
+const selectedUser = computed(() => users.value.find((u: User) => u.id === assignedUserId.value) || null);
+const displayText = computed(() => selectedUser.value?.email ?? "Choose user");
+const statusValues = computed(() => statusValuesData.value?.taskStatusValues ?? []);
+const users = computed(() => usersData.value?.users ?? []);
 
 function selectUser(id: string) {
   assignedUserId.value = id;
@@ -177,12 +168,12 @@ watch(
     if (task) {
       title.value = task.title || "";
       description.value = task.description || "";
-      status.value = task.status || "";
+      status.value = task.status || "TO_DO";
       assignedUserId.value = task.assignee?.id ? String(task.assignee.id) : null;
     } else {
       title.value = "";
       description.value = "";
-      status.value = "";
+      status.value = "TO_DO";
       assignedUserId.value = null;
     }
   },
@@ -194,6 +185,10 @@ function handleClose() {
   description.value = "";
   status.value = "";
   props.onClose();
+}
+
+function handleClearAssignee() {
+  assignedUserId.value = null;
 }
 
 async function handleSaveTask() {

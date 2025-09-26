@@ -6,6 +6,7 @@
 import { computed } from "vue";
 import type { TaskStatus } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { Ban, CircleCheckBig, Loader, LoaderCircle } from "lucide-vue-next";
 
 const props = defineProps(["data"]);
 
@@ -23,24 +24,28 @@ function statusLookup(status: TaskStatus) {
       textColor: "text-blue-500",
       borderColor: "border-blue-500",
       bgColor: "bg-blue-100",
+      icon: Loader,
     },
     IN_PROGRESS: {
       label: "In progress",
       textColor: "text-yellow-600",
       borderColor: "border-yellow-600",
       bgColor: "bg-yellow-100",
+      icon: LoaderCircle,
     },
     BLOCKED: {
       label: "Blocked",
       textColor: "text-red-500",
       borderColor: "border-red-500",
       bgColor: "bg-red-100",
+      icon: Ban,
     },
     DONE: {
       label: "Done",
       textColor: "text-green-600",
       borderColor: "border-green-600",
       bgColor: "bg-green-100",
+      icon: CircleCheckBig,
     },
   };
   return lookup[status];

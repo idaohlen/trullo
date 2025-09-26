@@ -6,7 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { authDirectiveTransformer } from "./graphql/utils/authDirective.js";
+import directives from "./graphql/directives/index.js";
 import { wrapAllResolversWithErrorHandling } from "./graphql/utils/resolverUtils.js";
 import connectDB from "./db.js";
 import typeDefs from "./graphql/typeDefs/index.js";
@@ -23,7 +23,14 @@ export async function createApp(): Promise<Express> {
   const app: Express = express();
 
   let schema = makeExecutableSchema({ typeDefs, resolvers });
-  schema = authDirectiveTransformer(schema, "auth");
+  
+  // Apply directive transformers in order
+  schema = directives.authTransformer(schema, "auth");
+  schema = directives.adminTransformer(schema, "admin");
+  schema = directives.selfTransformer(schema, "self");
+  schema = directives.ownerTransformer(schema, "owner");
+  schema = directives.memberTransformer(schema, "member");
+  
   schema = wrapAllResolversWithErrorHandling(schema);
 
   // Create Apollo Server

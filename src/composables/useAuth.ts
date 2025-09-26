@@ -1,5 +1,5 @@
 import { useQuery } from "@vue/apollo-composable";
-import { GET_ME } from "@/api/graphql";
+import { GET_ME } from "@/api/user.gql";
 import { computed } from "vue";
 
 export function useAuth() {

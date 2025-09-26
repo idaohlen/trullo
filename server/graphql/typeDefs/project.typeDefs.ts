@@ -1,6 +1,6 @@
 export default `#graphql
   type Query {
-    project(id: ID!):  Project  @auth
+    project(id: ID!):  Project  @auth @member
     projects:         [Project] @auth
     myProjects:       [Project] @auth
   }
@@ -19,12 +19,14 @@ export default `#graphql
       description: String
       ownerId: ID
       members: [ID]
-    ): Project @auth
+    ): Project @auth @owner
 
-    deleteProject(id: ID!): Boolean @auth
+    deleteProject(id: ID!): Boolean @auth @owner
     
-    addProjectMember(projectId: ID!, userId: ID!): Project @auth
-    removeProjectMember(projectId: ID!, userId: ID!): Project @auth
+    addProjectMember(projectId: ID!, userId: ID!): Project @auth @owner(arg: "projectId")
+    removeProjectMember(projectId: ID!, userId: ID!): Project @auth @owner(arg: "projectId")
+    leaveProject(projectId: ID!): Project @auth @member(arg: "projectId")
+    joinProject(projectId: ID!): Project @auth
   }
 
   type Project {
@@ -37,5 +39,14 @@ export default `#graphql
     membersList: [User]
     createdAt: String
     updatedAt: String
+  }
+
+  type PaginatedProjects {
+    items: [Project!]!
+    totalCount: Int!
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    currentPage: Int!
+    totalPages: Int!
   }
 `;

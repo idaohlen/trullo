@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, type PropType } from "vue";
 import { useMutation } from "@vue/apollo-composable";
-import { UPDATE_USER } from "../api/graphql";
+import { UPDATE_USER } from "../api/user.gql";
 import type { User } from "@/types";
 import {
   Dialog,

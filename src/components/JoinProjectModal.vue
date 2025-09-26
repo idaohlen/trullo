@@ -52,7 +52,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-import { GET_PROJECTS, ADD_PROJECT_MEMBER, GET_MY_PROJECTS } from "../api/graphql";
+import {
+  GET_PROJECTS,
+  GET_MY_PROJECTS,
+  JOIN_PROJECT,
+} from "../api/project.gql";
 import { Button } from "./ui/button";
 import BasePopover from "./BasePopover.vue";
 import LoaderOverlay from "./LoaderOverlay.vue";
@@ -86,32 +90,33 @@ const projects = computed(() => projectsData.value?.projects || []);
 
 // Filter out projects where user is already a member or owner
 const availableProjects = computed(() => {
-  if (!projects.value || !user.value) return []
-  
+  if (!projects.value || !user.value) return [];
+
   return projects.value.filter((project: Project) => {
     // Check if user is the owner
-    if (project.ownerId === user.value!.id) return false
-    
+    if (project.ownerId === user.value!.id) return false;
+
     // Check if user is already a member
-    if (project.members.includes(user.value!.id)) return false
-    
-    return true
-  })
-})
+    if (project.members.includes(user.value!.id)) return false;
+
+    return true;
+  });
+});
 
 const selectedProject = computed(() => {
-  return availableProjects.value.find((p: Project) => p.id === selectedProjectId.value) || null;
+  return (
+    availableProjects.value.find(
+      (p: Project) => p.id === selectedProjectId.value
+    ) || null
+  );
 });
 
 const displayText = computed(() => {
   return selectedProject.value?.title ?? "Choose project to join";
 });
 
-const { mutate: addProjectMember } = useMutation(ADD_PROJECT_MEMBER, {
-  refetchQueries: [
-    { query: GET_PROJECTS },
-    { query: GET_MY_PROJECTS }
-  ],
+const { mutate: joinProject } = useMutation(JOIN_PROJECT, {
+  refetchQueries: [{ query: GET_PROJECTS }, { query: GET_MY_PROJECTS }],
 });
 
 function selectProject(id: string) {
@@ -143,15 +148,14 @@ async function handleJoinProject() {
     showLoading("Joining project...");
     error.value = "";
 
-    // Use the dedicated addProjectMember mutation
+    // Use the dedicated joinProject mutation
     if (!selectedProjectId.value) {
       error.value = "No project selected";
       return;
     }
 
-    await addProjectMember({
+    await joinProject({
       projectId: selectedProjectId.value,
-      userId: currentUserId,
     });
 
     hideLoading();
