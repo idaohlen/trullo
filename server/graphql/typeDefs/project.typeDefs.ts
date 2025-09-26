@@ -22,6 +22,9 @@ export default `#graphql
     ): Project @auth
 
     deleteProject(id: ID!): Boolean @auth
+    
+    addProjectMember(projectId: ID!, userId: ID!): Project @auth
+    removeProjectMember(projectId: ID!, userId: ID!): Project @auth
   }
 
   type Project {

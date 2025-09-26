@@ -108,6 +108,40 @@ class Projects {
   }
 
   /*
+    ADD MEMBER
+  */
+  async addMember(_: unknown, { projectId, userId }: { projectId: string; userId: string }) {
+    badInputIfInvalidId(projectId, "Invalid project id", { projectId }); 
+    badInputIfInvalidId(userId, "Invalid user id", { userId }); 
+
+    const project = await Project.findByIdAndUpdate(
+      projectId,
+      { $addToSet: { members: new mongoose.Types.ObjectId(userId) } }, // $addToSet prevents duplicates
+      { new: true, runValidators: true }
+    );
+
+    notFoundIfNull(project, "Project not found", { projectId }); 
+    return project;
+  }
+
+  /*
+    REMOVE MEMBER
+  */
+  async removeMember(_: unknown, { projectId, userId }: { projectId: string; userId: string }) {
+    badInputIfInvalidId(projectId, "Invalid project id", { projectId }); 
+    badInputIfInvalidId(userId, "Invalid user id", { userId }); 
+
+    const project = await Project.findByIdAndUpdate(
+      projectId,
+      { $pull: { members: new mongoose.Types.ObjectId(userId) } }, // $pull removes the member
+      { new: true, runValidators: true }
+    );
+
+    notFoundIfNull(project, "Project not found", { projectId }); 
+    return project;
+  }
+
+  /*
     DELETE
   */
   async delete(_: unknown, { id }: { id: string }) {

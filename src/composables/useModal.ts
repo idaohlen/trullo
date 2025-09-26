@@ -3,6 +3,7 @@ import { ref, provide, inject, type Ref } from "vue";
 type ModalType = 
   "CreateTask" 
 | "CreateProject" 
+| "JoinProject"
 | "EditUser" 
 | "TaskDetails"
 | "Confirmation"

@@ -4,7 +4,11 @@
         <h2 class="text-white text-3xl font-bold mb-2">My Projects</h2>
         <Badge variant="outline" class="text-white">{{ myProjects.length }}</Badge>
       </div>
-    <Button @click="handleCreateProject">Create new project</Button>
+      <div class="flex gap-2">
+        <Button @click="handleJoinProject">Join</Button>
+        <Button @click="handleCreateProject">Create new</Button>
+
+      </div>
   </div>
   
   <Card class="p-2 mb-12 w-full">
@@ -53,5 +57,9 @@ const myProjects = computed(() => projectsData.value?.myProjects ?? []);
 
 function handleCreateProject() {
   openModal("CreateProject");
+}
+
+function handleJoinProject() {
+  openModal("JoinProject");
 }
 </script>

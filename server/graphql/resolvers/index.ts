@@ -43,6 +43,8 @@ export default {
     addProject: project.create,
     updateProject: project.update,
     deleteProject: project.delete,
+    addProjectMember: project.addMember,
+    removeProjectMember: project.removeMember,
 
     /* TASKS */
     addTask: task.create,

@@ -22,6 +22,11 @@
       :onClose="closeModal"
       :project="modalPayload"
     />
+    <JoinProjectModal
+      v-if="modalType === 'JoinProject'"
+      :isOpen="true"
+      :onClose="closeModal"
+    />
     <EditUserModal
       v-if="modalType === 'EditUser'"
       :isOpen="true"
@@ -49,6 +54,7 @@ import CreateTaskModal from "@/components/CreateTaskModal.vue";
 import EditUserModal from "@/components/EditUserModal.vue";
 import TaskDetailsModal from "@/components/TaskDetailsModal.vue";
 import CreateProjectModal from "./components/CreateProjectModal.vue";
+import JoinProjectModal from "./components/JoinProjectModal.vue";
 
 const { modalType, modalPayload, closeModal } = useModal();
 const { isLoading, message: loadingMessage } = useLoading();

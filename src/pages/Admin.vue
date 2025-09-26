@@ -1,5 +1,5 @@
 <template>
-  <h1 class="text-white text-2xl mb-4 font-bold tracking-wider">Admin</h1>
+  <h1 class="text-white text-4xl font-bold mb-4 tracking-wider">Admin</h1>
   <div v-if="loading" class="text-white">Loading...</div>
   <div v-else-if="error">
     <Alert variant="destructive">

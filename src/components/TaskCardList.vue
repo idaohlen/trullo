@@ -6,24 +6,27 @@
     :class="{ 'task-done': !!task.finishedAt }"
   >
     <div class="p-3">
-      <div class="flex justify-between">
         <div
           class="font-bold hover:underline underline-offset-4 hover:cursor-pointer"
           @click="handleViewTask(task)"
         >
           {{ task.title }}
         </div>
-        <StatusBadge :data="task.status" />
-      </div>
+
       <div v-if="task.description" class="text-xs truncate text-gray-400">
         {{ getFirstLine(task.description) }}
       </div>
+      <div class="flex items-end justify-between gap-2">
       <Badge
         v-if="task.assignee"
         variant="outline"
         class="text-[.7rem] bg-white mt-2"
-        >{{ task.assignee.name }}</Badge
-      >
+        >
+        {{ task.assignee.name }}
+        </Badge>
+        <StatusBadge :data="task.status" />
+      </div>
+
     </div>
   </Card>
 </template>

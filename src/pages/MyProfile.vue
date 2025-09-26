@@ -1,5 +1,5 @@
 <template>
-  <h1 class="text-white text-2xl mb-4 font-bold tracking-wider">My profile</h1>
+  <h1 class="text-white text-4xl font-bold mb-4 tracking-wider">My profile</h1>
   <Card v-if="authStore.user" class="gap-2">
     <CardContent>
       <div class="flex justify-between mb-4">
