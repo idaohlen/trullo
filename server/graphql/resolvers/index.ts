@@ -23,6 +23,7 @@ export default {
     /* TASKS */
     task: task.getById,
     tasks: task.getMany,
+    myTasks: task.getMine,
     projectTasks: task.getByProject,
     taskStatusValues: task.getStatusValues.bind(task)
   },

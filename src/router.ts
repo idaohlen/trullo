@@ -9,8 +9,7 @@ import { gql } from "@apollo/client/core";
 import DefaultLayout from "./layouts/DefaultLayout.vue";
 import NoLayout from "./layouts/NoLayout.vue";
 // Pages
-import Landing from "./pages/Landing.vue";
-import Dashboard from "./pages/Dashboard.vue";
+import Index from "./pages/Index.vue";
 import NotFound from "./pages/NotFound.vue";
 import MyProfile from "./pages/MyProfile.vue";
 import Admin from "./pages/Admin.vue";
@@ -21,13 +20,7 @@ const routes: RouteRecordRaw[] = [
     path: "/",
     component: DefaultLayout,
     children: [
-      { path: "", name: "Landing", component: Landing },
-      {
-        path: "dashboard",
-        name: "Dashboard",
-        component: Dashboard,
-        meta: { requiresAuth: true },
-      },
+      { path: "", name: "Index", component: Index },
       {
         path: "my-profile",
         name: "MyProfile",

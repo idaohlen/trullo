@@ -5,11 +5,16 @@
   <div v-else>
     <router-view />
 
+    <!-- Global Loading Overlay -->
+    <LoaderOverlay v-if="isLoading" :text="loadingMessage" />
+
+    <!-- Modals -->
     <CreateTaskModal
       v-if="modalType === 'CreateTask'"
       :isOpen="true"
       :onClose="closeModal"
-      :task="modalPayload"
+      :task="typeof modalPayload === 'object' ? modalPayload : null"
+      :projectId="typeof modalPayload === 'string' ? modalPayload : undefined"
     />
     <CreateProjectModal
       v-if="modalType === 'CreateProject'"
@@ -35,15 +40,18 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { useLoading } from "@/stores/loading";
 import { useQuery } from "@vue/apollo-composable";
 import { GET_ME } from "@/api/graphql";
 import { useModal } from "@/composables/useModal";
+import LoaderOverlay from "@/components/LoaderOverlay.vue";
 import CreateTaskModal from "@/components/CreateTaskModal.vue";
 import EditUserModal from "@/components/EditUserModal.vue";
 import TaskDetailsModal from "@/components/TaskDetailsModal.vue";
 import CreateProjectModal from "./components/CreateProjectModal.vue";
 
 const { modalType, modalPayload, closeModal } = useModal();
+const { isLoading, message: loadingMessage } = useLoading();
 
 const authStore = useAuthStore();
 const loading = ref(true);

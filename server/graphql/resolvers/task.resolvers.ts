@@ -5,6 +5,7 @@ import Task, {
   type Task as TaskDoc
 } from "../../models/Task.js";
 import User from "../../models/User.js";
+import Project from "../../models/Project.js";
 import { excludePassword } from "../utils/sanitizeUser.js";
 import { validateOrThrow, notFoundIfNull, badInputIfInvalidId } from "../utils/errorHandling.js";
 
@@ -12,6 +13,7 @@ type CreateInput = {
   title: string;
   description?: string;
   assignedTo?: Types.ObjectId | string;
+  projectId: Types.ObjectId | string;
 };
 
 type UpdateInput = {
@@ -26,6 +28,8 @@ type UpdateInput = {
 class Tasks {
   static typeResolvers = {
     id: (doc: TaskDoc) => String(doc._id),
+    projectId: (doc: TaskDoc) => String(doc.projectId),
+    project: async (doc: TaskDoc) => await Project.findById(doc.projectId),
     createdAt: (doc: TaskDoc) => doc.createdAt ? doc.createdAt.toISOString() : null,
     updatedAt: (doc: TaskDoc) => doc.updatedAt ? doc.updatedAt.toISOString() : null,
     finishedAt: (doc: TaskDoc) => doc.finishedAt ? doc.finishedAt.toISOString() : null,
@@ -52,14 +56,23 @@ class Tasks {
     GET BY PROJECT
   */
   async getByProject(_: unknown, { projectId }: { projectId: string }) {
-    return await Task.find({ project: projectId });
+    return await Task.find({ projectId: projectId });
+  }
+
+  /*
+    GET MINE
+  */
+  async getMine(_: unknown, _args: unknown, context: { userId: string }) {
+    return await Task.find({ assignedTo: context.userId });
+    
   }
 
   /*
     GET BY ID
   */
   async getById(_: unknown, { id }: { id: string }) {
-    badInputIfInvalidId(id, "Invalid task id", { taskId: id }); // validate ID
+    // validate ID
+    badInputIfInvalidId(id, "Invalid task id", { taskId: id });
     const task = await Task.findById(id);
 
     notFoundIfNull(task, "Task not found", { taskId: id }); // error handling
@@ -79,7 +92,8 @@ class Tasks {
     UPDATE
   */
   async update(_: unknown, { id, ...input }: UpdateInput) {
-    badInputIfInvalidId(id, "Invalid task id", { taskId: id }); // validate ID
+    // validate ID
+    badInputIfInvalidId(id, "Invalid task id", { taskId: id });
 
     // Validate input
     const TaskUpdateSchema = TaskValidationSchema.partial();
@@ -104,7 +118,8 @@ class Tasks {
     DELETE
   */
   async delete(_: unknown, { id }: { id: string }) {
-    badInputIfInvalidId(id, "Invalid task id", { taskId: id }); // validate ID
+    // validate ID
+    badInputIfInvalidId(id, "Invalid task id", { taskId: id });
 
     const deleted = await Task.findByIdAndDelete(id);
     notFoundIfNull(deleted, "Task not found", { taskId: id }); // error handling

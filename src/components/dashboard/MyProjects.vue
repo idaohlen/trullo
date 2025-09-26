@@ -1,10 +1,13 @@
 <template>
-  <div class="flex gap-4 justify-between mb-2">
-    <h2 class="text-white text-3xl font-bold mb-2">My Projects</h2>
+    <div class="flex gap-4 justify-between mb-2">
+      <div class="flex gap-2 items-start">
+        <h2 class="text-white text-3xl font-bold mb-2">My Projects</h2>
+        <Badge variant="outline" class="text-white">{{ myProjects.length }}</Badge>
+      </div>
     <Button @click="handleCreateProject">Create new project</Button>
   </div>
   
-  <Card class="p-2 mb-12">
+  <Card class="p-2 mb-12 w-full">
     <div v-if="loading">Loading...</div>
     <div v-else-if="error">Error: {{ error.message }}</div>
     <template v-else>
@@ -27,75 +30,26 @@
       </div>
     </template>
   </Card>
-
-  <div class="flex gap-4 justify-between mb-2">
-     <h2 class="text-white text-3xl font-bold mb-2">My Tasks</h2>
-    <Button @click="handleCreateTask">Add task</Button>
-  </div>
-  <Card class="p-2">
-    <div v-if="loading">Loading...</div>
-    <div v-else-if="error">Error: {{ error.message }}</div>
-    <div v-else class="grid grid-cols-2 gap-2">
-      <TaskCardList :data="tasks"/>
-    </div>
-  </Card>
-
 </template>
 <script setup lang="ts">
 import { computed } from "vue";
 import { useQuery } from "@vue/apollo-composable";
-import { gql } from "@apollo/client/core";
-import type { Task, Project } from "@/types";
-
+import type { Project } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useModal } from "@/composables/useModal";
-import TaskCardList from "@/components/TaskCardList.vue";
 import { Badge } from "@/components/ui/badge";
+import { useModal } from "@/composables/useModal";
+import { GET_MY_PROJECTS } from "@/api/graphql";
 
 const { openModal } = useModal();
 
-type DashboardQueryResult = {
-  tasks: Task[];
+type QueryResult = {
   myProjects: Project[];
 };
 
-const { result, loading, error } = useQuery<DashboardQueryResult>(gql`
-  query GetTasks {
-    tasks {
-      id
-      title
-      description
-      status
-      # assignedTo
-      assignee {
-        id
-        name
-        # email
-      }
-      # createdAt
-      # updatedAt
-      finishedAt
-    }
-    myProjects {
-      id 
-      title 
-      description 
-      membersList {
-        id
-        name
-        email
-      }
-    }
-  }
-`);
+const { result: projectsData, loading, error } = useQuery<QueryResult>(GET_MY_PROJECTS);
 
-const myProjects = computed(() => result.value?.myProjects ?? []);
-const tasks = computed(() => result.value?.tasks ?? []);
-
-function handleCreateTask() {
-  openModal("CreateTask");
-}
+const myProjects = computed(() => projectsData.value?.myProjects ?? []);
 
 function handleCreateProject() {
   openModal("CreateProject");

@@ -1,5 +1,5 @@
 <template>
-  <LoaderOverlay v-if="loading" text="Loading..." />
+
   <Dialog :open="isOpen" @update:open="handleClose">
     <DialogContent>
       <DialogHeader>
@@ -80,15 +80,16 @@ import {
   UPDATE_TASK,
   GET_TASK_STATUS_VALUES,
   GET_TASKS,
+  GET_PROJECT_TASKS,
   GET_USERS,
 } from "../api/graphql";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
-import LoaderOverlay from "@/components/LoaderOverlay.vue";
 import BaseSelect from "./BaseSelect.vue";
 import BasePopover from "./BasePopover.vue";
+import { useLoading } from "@/stores/loading";
 
 const props = defineProps({
   isOpen: Boolean,
@@ -99,6 +100,10 @@ const props = defineProps({
   onTaskSaved: {
     type: Function,
     default: () => {},
+  },
+  projectId: {
+    type: String,
+    default: null,
   },
   task: {
     type: Object as PropType<Task | null>,
@@ -113,7 +118,7 @@ const isEdit = computed(
     props.task.id.length > 0
 );
 
-const loading = ref(false);
+const { showLoading, hideLoading } = useLoading();
 const error = ref("");
 
 // Form inputs
@@ -149,12 +154,20 @@ const { result: usersData } = useQuery(GET_USERS);
 const { result: statusValuesData } = useQuery(GET_TASK_STATUS_VALUES);
 const { mutate: addTask } = useMutation(ADD_TASK, {
   refetchQueries: [
-    { query: GET_TASKS }
+    { query: GET_TASKS },
+    { 
+      query: GET_PROJECT_TASKS,
+      variables: { projectId: props.projectId }
+    }
   ],
 });
 const { mutate: updateTask } = useMutation(UPDATE_TASK, {
   refetchQueries: [
-    { query: GET_TASKS }
+    { query: GET_TASKS },
+    { 
+      query: GET_PROJECT_TASKS,
+      variables: { projectId: props.projectId }
+    }
   ],
 });
 
@@ -185,7 +198,8 @@ function handleClose() {
 
 async function handleSaveTask() {
   error.value = "";
-  loading.value = true;
+  showLoading(isEdit.value ? "Updating task..." : "Creating task...");
+  
   try {
     const assignedTo = assignedUserId.value || undefined;
     if (isEdit.value && props.task) {
@@ -202,22 +216,23 @@ async function handleSaveTask() {
         description: description.value,
         status: status.value || undefined,
         assignedTo,
+        projectId : props.projectId
       });
     }
 
-    loading.value = false;
+    // Reset form
     title.value = "";
     description.value = "";
     status.value = "";
     assignedUserId.value = null;
 
+    hideLoading();
     handleClose();
     props.onTaskSaved();
   } catch (e: any) {
     error.value = e?.message || "Failed to save task.";
     console.error("Save task error:", e);
-  } finally {
-    loading.value = false;
+    hideLoading();
   }
 }
 </script>

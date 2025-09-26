@@ -53,9 +53,12 @@
 
     <!-- Tasks section could go here -->
     <Card class="mt-3 p-6 gap-3">
-      <h2 class="text-xl font-semibold">Project Tasks</h2>
+      <div class="flex justify-between gap-2">
+        <h2 class="text-xl font-semibold">Project Tasks</h2>
+        <Button @click="handleCreateTask">Add task</Button>
+      </div>
       <p class="text-gray-600">
-        Tasks for this project will be displayed here...
+        <TaskCardList :data="projectTasks" />
       </p>
     </Card>
   </div>
@@ -69,13 +72,29 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { useQuery } from "@vue/apollo-composable";
 import { gql } from "@apollo/client/core";
+import { useModal } from "@/composables/useModal";
 import type { Project } from "@/types";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { GET_PROJECT_TASKS } from "@/api/graphql";
+import TaskCardList from "@/components/TaskCardList.vue";
 
 const route = useRoute();
 
 // Get the project ID from the URL parameter
 const projectId = computed(() => route.params.id as string);
+
+const { result: tasksData } = useQuery(
+  GET_PROJECT_TASKS,
+  () => ({
+    projectId: projectId.value,
+  }),
+  () => ({
+    enabled: !!projectId.value,
+  })
+);
+
+const projectTasks = computed(() => tasksData.value?.projectTasks ?? []);
 
 const { result, loading, error } = useQuery(
   gql`
@@ -110,5 +129,11 @@ const project = computed(() => result.value?.project as Project | null);
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString();
+}
+
+const { openModal } = useModal();
+
+function handleCreateTask() {
+  openModal("CreateTask", projectId.value);
 }
 </script>

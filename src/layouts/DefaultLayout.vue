@@ -9,11 +9,6 @@
         </Button>
       </router-link>
       <div v-if="isLoggedIn">
-        <router-link to="/dashboard">
-          <Button variant="link" class="font-bold uppercase text-white">
-            Dashboard
-          </Button>
-        </router-link>
         <router-link to="/my-profile">
           <Button variant="link" class="font-bold uppercase text-white">
             My Profile

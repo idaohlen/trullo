@@ -93,7 +93,6 @@ import LoaderOverlay from "@/components/LoaderOverlay.vue";
 import MultiSelectPopover from "./MultiSelectPopover.vue";
 import Badge from "./ui/badge/Badge.vue";
 import { X } from "lucide-vue-next";
-import { gql } from "@apollo/client/core";
 
 const props = defineProps({
   isOpen: Boolean,

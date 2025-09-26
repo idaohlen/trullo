@@ -83,7 +83,7 @@ class Projects {
       members: data.members?.map(id => new mongoose.Types.ObjectId(id))
     };
 
-    return await Project.create(data);
+    return await Project.create(mongoData);
   }
 
   /*

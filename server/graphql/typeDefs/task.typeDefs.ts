@@ -1,9 +1,10 @@
 export default `#graphql
   type Query {
-    task(id: ID!):     Task          @auth
-    tasks:            [Task]         @auth
-    projectTasks:     [Task]         @auth
-    taskStatusValues: [TaskStatus!]!
+    task(id: ID!):                 Task          @auth
+    tasks:                        [Task]         @auth(role: "ADMIN")
+    projectTasks(projectId: ID!): [Task]         @auth
+    myTasks:                      [Task]         @auth
+    taskStatusValues:             [TaskStatus!]!
   }
 
   type Mutation {
@@ -12,6 +13,7 @@ export default `#graphql
       description: String
       status: TaskStatus
       assignedTo: ID
+      projectId: ID!
     ): Task @auth
 
     updateTask(
@@ -42,5 +44,7 @@ export default `#graphql
     finishedAt: String
     assignedTo: ID
     assignee: User
+    projectId: ID
+    project: Project
   }
 `;

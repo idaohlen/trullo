@@ -94,10 +94,14 @@ export const ADD_PROJECT = gql`
 export const GET_MY_PROJECTS = gql`
   query GetMyProjects {
     myProjects {
-      id
-      title
-      description
-      membersList
+      id 
+      title 
+      description 
+      membersList {
+        id
+        name
+        email
+      }
     }
   }
 `;
@@ -121,6 +125,49 @@ export const GET_TASKS = gql`
         name
         email
       }
+      projectId
+      createdAt
+      updatedAt
+      finishedAt
+    }
+  }
+`;
+
+export const GET_PROJECT_TASKS = gql`
+  query GetProjectTasks($projectId: ID!) {
+    projectTasks(projectId: $projectId) {
+      id
+      title
+      description
+      status
+      assignedTo
+      assignee {
+        id
+        name
+        email
+      }
+      projectId
+      createdAt
+      updatedAt
+      finishedAt
+    }
+  }
+`;
+
+export const GET_MY_TASKS = gql`
+  query GeMyTasks {
+    myTasks {
+      id
+      title
+      description
+      status
+      assignedTo
+      assignee {
+        id
+        name
+        email
+      }
+      projectId
       createdAt
       updatedAt
       finishedAt
@@ -154,17 +201,20 @@ export const ADD_TASK = gql`
     $description: String
     $status: TaskStatus
     $assignedTo: ID
+    $projectId: ID!
   ) {
     addTask(
       title: $title
       description: $description
       status: $status
       assignedTo: $assignedTo
+      projectId: $projectId
     ) {
       title
       description
       status
       assignedTo
+      projectId
     }
   }
 `;
@@ -192,6 +242,7 @@ export const UPDATE_TASK = gql`
       assignee {
         name
       }
+      projectId
       createdAt
       updatedAt
       finishedAt
