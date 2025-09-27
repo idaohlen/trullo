@@ -13,6 +13,13 @@ import typeDefs from "./graphql/typeDefs/index.js";
 import resolvers from "./graphql/resolvers/index.js";
 import restAPI from "./rest";
 
+declare module "express-serve-static-core" {
+  interface Request {
+    userId?: string;
+    role?: string;
+  }
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

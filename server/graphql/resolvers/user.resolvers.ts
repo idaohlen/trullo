@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
-import { excludePassword } from "../utils/sanitizeUser.js";
+import { excludePassword } from "../../utils/sanitizeUser.js";
 import User, { type Role, UserValidationSchema, type User as UserDoc } from "../../models/User.js";
 import Task from "../../models/Task.js";
 import { validateOrThrow, notFoundIfNull, badInputIf, badInputIfInvalidId } from "../utils/errorHandling.js";
-import { paginateFind } from "../utils/pagination.js";
+import { paginateFind } from "../../utils/pagination.js";
 
 type UpdateInput = {
   id: string;
@@ -44,9 +44,12 @@ class Users {
     GET BY ID
   */
   async getById(_: unknown, { id }: { id: string }) {
-    badInputIfInvalidId(id, "Invalid user id", { userId: id }); // validate ID
+    // Validate id
+    badInputIfInvalidId(id, "Invalid user id", { userId: id });
+
+    // Check if user exists
     const user = await User.findById(id);
-    notFoundIfNull(user, "User not found", { userId: id }); // error handling
+    notFoundIfNull(user, "User not found", { userId: id });
     return excludePassword(user);
   }
 
@@ -54,11 +57,13 @@ class Users {
     GET ME
   */
   async me(_: unknown, _args: unknown, context: { userId: string }) {
+    // Validate id
     const id = context.userId;
-    badInputIfInvalidId(id, "Invalid user id", { userId: id }); // validate ID
+    badInputIfInvalidId(id, "Invalid user id", { userId: id });
 
+    // Check if user exists
     const user = await User.findById(context.userId);
-    notFoundIfNull(user, "User not found", { userId: context.userId }); // error handling
+    notFoundIfNull(user, "User not found", { userId: context.userId });
     return excludePassword(user);
   }
 
@@ -66,7 +71,8 @@ class Users {
     UPDATE
   */
   async update(_: unknown, { id, currentPassword, ...input }: UpdateInput, context: { userId: string; role?: string }) {
-    badInputIfInvalidId(id, "Invalid user id", { userId: id }); // validate ID
+    // Validate id
+    badInputIfInvalidId(id, "Invalid user id", { userId: id });
     
     const UserUpdateSchema = UserValidationSchema.partial();
     const data = validateOrThrow(UserUpdateSchema, input);
@@ -109,13 +115,15 @@ class Users {
     UPDATE ROLE
   */
   async updateRole(_: unknown, { id, role }: { id: string, role: Role }) {
-    badInputIfInvalidId(id, "Invalid user id", { userId: id }); // validate ID
+    // Validate id
+    badInputIfInvalidId(id, "Invalid user id", { userId: id });
 
     const updatedUser = await User.findByIdAndUpdate(id, { role }, {
       new: true,
     });
 
-    notFoundIfNull(updatedUser, "User not found", { userId: id }); // error handling
+    // Check if user exists
+    notFoundIfNull(updatedUser, "User not found", { userId: id });
     return updatedUser;
   }
 
@@ -123,9 +131,12 @@ class Users {
     DELETE
   */
   async delete(_: unknown, { id }: { id: string }, context: { userId?: string; res?: any }) {
-    badInputIfInvalidId(id, "Invalid user id", { userId: id }); // validate ID
+    // Validate id
+    badInputIfInvalidId(id, "Invalid user id", { userId: id });
+
+    // Check if user exists
     const user = await User.findById(id);
-    notFoundIfNull(user, "User not found", { userId: id }); // error handling
+    notFoundIfNull(user, "User not found", { userId: id });
 
     // If the user is deleting their own account, clear the auth cookie (log out)
     const isSelfDelete = context.userId && context.userId === String(id);

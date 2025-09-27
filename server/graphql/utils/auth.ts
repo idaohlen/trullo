@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { GraphQLError } from "graphql";
-import { excludePassword } from "./sanitizeUser.js";
+import { excludePassword } from "../../utils/sanitizeUser.js";
 import User, { UserValidationSchema } from "../../models/User.js";
 
 export type GraphQLContext = {

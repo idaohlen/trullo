@@ -49,7 +49,7 @@ export function badInputIf(condition: boolean, message: string, extensions?: Rec
   }
 }
 
-export function badInputIfInvalidId(id: string, message = "Invalid id", extensions?: Record<string, unknown>) {
+export function badInputIfInvalidId(id: string, message = "Invalid ID", extensions?: Record<string, unknown>) {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new GraphQLError(message, {
       extensions: { code: "BAD_USER_INPUT", ...extensions }

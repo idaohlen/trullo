@@ -1,77 +1,171 @@
-import express, { type NextFunction, type Request, type Response } from "express";
-import Task, { TaskValidationSchema } from "../../models/Task";
+import express, { type Request, type Response } from "express";
+import mongoose from "mongoose";
+import Task, {
+  TaskValidationSchema,
+  type Task as TaskType,
+} from "../../models/Task";
+import { paginateFind } from "../../utils/pagination.js";
+import { formatTaskResponse } from "../utils/formatResponse.js";
+import {
+  asyncHandler,
+  badRequest,
+  notFound,
+  validationError,
+} from "../middleware/error.middleware.js";
 
 const router = express.Router();
 
-router.get("/:taskId", getById);
-router.put("/:taskId", updateById);
-router.delete("/:taskId", deleteById);
-router.post("/", createNew);
-router.get("/", getAll);
+router.get("/:taskId", asyncHandler(getById));
+router.put("/:taskId", asyncHandler(updateById));
+router.delete("/:taskId", asyncHandler(deleteById));
 
-async function createNew(req: Request, res: Response, next: NextFunction) {
-  const parseResult = TaskValidationSchema.safeParse(req.body);
-  
-  if (!parseResult.success) {
-    return res.status(400).json({
-      status: "FAIL",
-      message: "Validation error when parsing user input for a new task",
-      error: parseResult.error
-    });
-  }
-  try {
-    const task = await Task.create(parseResult.data);
-    res.status(200).json({ status: "SUCCESS", message: "Created new task", data: task });
-  } catch (error) {
-    next(error);
-  }
+router.get("/mine", asyncHandler(getMine));
+router.get("/status-values", asyncHandler(getStatusValues));
+router.post("/", asyncHandler(createNew));
+router.get("/", asyncHandler(getAll));
+
+const statusValues = ["TO_DO", "IN_PROGRESS", "BLOCKED", "DONE"];
+
+async function getStatusValues(_req: Request, res: Response) {
+  res.status(200).json({
+    status: "SUCCESS",
+    message: "Retrieved task status values",
+    data: statusValues,
+  });
 }
 
-async function getAll(_req: Request, res: Response, next: NextFunction) {
-  try {
-    const tasks = await Task.find({});
-    res.status(200).json({ status: "SUCCESS", message: "Retrieved all tasks", data: tasks });
-  } catch (error) {
-    next(error);
-  }
+/*
+  CREATE
+*/
+async function createNew(req: Request, res: Response) {
+  const input = req.body;
+
+  // Validate input
+  const parseResult = TaskValidationSchema.safeParse(input);
+  if (!parseResult.success) validationError(parseResult.error);
+
+  const task = await Task.create(parseResult.data);
+  res.status(200).json({
+    status: "SUCCESS",
+    message: "Created new task",
+    data: await formatTaskResponse(task),
+  });
 }
 
-async function getById(req: Request, res: Response, next: NextFunction) {
-  try {
-    const task = await Task.findById(req.params.taskId);
-    res.status(200).json({ status: "SUCCESS", message: "Retrieved task by ID", data: task });
-  } catch (error) {
-    next(error);
-  }
+/*
+  GET ALL
+*/
+async function getAll(req: Request, res: Response) {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 25;
+
+  const tasks = await paginateFind<TaskType>(Task.find(), { page, limit });
+  const formattedTasks = await Promise.all(
+    tasks.items.map((t: TaskType) => formatTaskResponse(t))
+  );
+
+  return res.status(200).json({
+    status: "SUCCESS",
+    message: "Retrieved tasks",
+    data: formattedTasks,
+  });
 }
 
-async function updateById(req: Request, res: Response, next: NextFunction) {
+/*
+  GET BY ID
+*/
+async function getById(req: Request, res: Response) {
+  // Validate id
+  const { taskId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(taskId)) badRequest("Invalid id");
+
+  // Check that task exists
+  const task = await Task.findById(taskId);
+  if (!task) notFound("Task not found");
+
+  // Format task with additional fields
+  const response = await formatTaskResponse(task);
+  res.status(200).json({
+    status: "SUCCESS",
+    message: "Retrieved task by id",
+    data: response,
+  });
+}
+
+/*
+  GET MINE
+*/
+async function getMine(req: Request, res: Response) {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 25;
+
+  const tasks = await paginateFind<TaskType>(
+    Task.find({ assignedTo: req.userId }),
+    { page, limit }
+  );
+  const formattedTasks = await Promise.all(
+    tasks.items.map((t: TaskType) => formatTaskResponse(t))
+  );
+
+  return res.status(200).json({
+    status: "SUCCESS",
+    message: "Retrieved my tasks",
+    data: formattedTasks,
+  });
+}
+
+/*
+  UPDATE
+*/
+async function updateById(req: Request, res: Response) {
+  const input = req.body;
+
+  // Validate id
+  const { taskId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(taskId)) badRequest("Invalid task id");
+
+  // Validate input
   const TaskUpdateSchema = TaskValidationSchema.partial();
   const parseResult = TaskUpdateSchema.safeParse(req.body);
-  
-  if (!parseResult.success) {
-    return res.status(400).json({
-      status: "FAIL",
-      message: "Validation error when parsing user input for updating task data",
-      error: parseResult.error
-    });
+  if (!parseResult.success) validationError(parseResult.error);
+
+  const update: Record<string, any> = { ...parseResult };
+
+  if (input.status) {
+    if (input.status === "DONE") {
+      update.finishedAt = new Date();
+      update.finishedBy = new mongoose.Types.ObjectId(req.userId);
+    } else {
+      update.finishedAt = null;
+      update.finishedBy = null;
+    }
   }
 
-  try {
-    const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, parseResult.data, {new: true });
-    res.status(200).json({ status: "SUCCESS", message: "Updated task by ID", data: updatedTask });
-  } catch (error) {
-    next(error);
-  }
+  const updatedTask = await Task.findByIdAndUpdate(taskId, update, {
+    runValidation: true,
+    new: true,
+  });
+  if (!updatedTask) notFound("Task not found");
+
+  res.status(200).json({
+    status: "SUCCESS",
+    message: "Updated task by id",
+    data: await formatTaskResponse(updatedTask),
+  });
 }
 
-async function deleteById(req: Request, res: Response, next: NextFunction) {
-  try {
-    await Task.findByIdAndDelete(req.params.taskId);
-    res.status(200).json({ status: "SUCCESS", message: "Deleted task by ID" });
-  } catch (error) {
-    next(error);
-  }
+/*
+  DELETE
+*/
+async function deleteById(req: Request, res: Response) {
+  // Validate id
+  const { taskId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(taskId)) badRequest("Invalid task id");
+
+  const deletedTask = await Task.findByIdAndDelete(taskId);
+  if (!deletedTask) notFound("Task not found");
+
+  res.status(200).json({ status: "SUCCESS", message: "Deleted task by id" });
 }
 
 export default router;

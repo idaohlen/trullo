@@ -9,7 +9,7 @@ import {
   notFoundIfNull,
   badInputIfInvalidId,
 } from "../utils/errorHandling.js";
-import { paginateFind, paginateAggregate } from "../utils/pagination.js";
+import { paginateFind, paginateAggregate } from "../../utils/pagination.js";
 
 type CreateInput = {
   title: string;
@@ -56,6 +56,7 @@ class Projects {
         { description: { $regex: search, $options: "i" } },
       ];
     }
+
     const pipeline: PipelineStage[] = [
       Object.keys(match).length ? { $match: match } : undefined,
       {
@@ -111,10 +112,12 @@ class Projects {
     GET BY ID
   */
   async getById(_: unknown, { id }: { id: string }) {
-    badInputIfInvalidId(id, "Invalid project id", { projectId: id }); // validate ID
-    const project = await Project.findById(id);
+    // validate id
+    badInputIfInvalidId(id, "Invalid project id", { projectId: id });
 
-    notFoundIfNull(project, "Project not found", { projectId: id }); // error handling
+    // Check if projects exists
+    const project = await Project.findById(id);
+    notFoundIfNull(project, "Project not found", { projectId: id });
     return project;
   }
 
@@ -146,7 +149,8 @@ class Projects {
     UPDATE
   */
   async update(_: unknown, { id, ...input }: UpdateInput) {
-    badInputIfInvalidId(id, "Invalid project id", { projectId: id }); // validate ID
+    // validate id
+    badInputIfInvalidId(id, "Invalid project id", { projectId: id });
 
     // Validate input
     const ProjectUpdateSchema = ProjectValidationSchema.partial();
@@ -170,6 +174,7 @@ class Projects {
     _: unknown,
     { projectId, userId }: { projectId: string; userId: string }
   ) {
+    // validate id
     badInputIfInvalidId(projectId, "Invalid project id", { projectId });
     badInputIfInvalidId(userId, "Invalid user id", { userId });
 
@@ -190,6 +195,7 @@ class Projects {
     _: unknown,
     { projectId, userId }: { projectId: string; userId: string }
   ) {
+    // validate id
     badInputIfInvalidId(projectId, "Invalid project id", { projectId });
     badInputIfInvalidId(userId, "Invalid user id", { userId });
 
@@ -211,6 +217,7 @@ class Projects {
     { projectId }: { projectId: string },
     context: { userId: string }
   ) {
+    // validate id
     badInputIfInvalidId(projectId, "Invalid project id", { projectId });
 
     // Check if project exists and user is not already a member or owner
@@ -254,6 +261,7 @@ class Projects {
     { projectId }: { projectId: string },
     context: { userId: string }
   ) {
+    // validate id
     badInputIfInvalidId(projectId, "Invalid project id", { projectId });
 
     const project = await Project.findByIdAndUpdate(
@@ -270,6 +278,7 @@ class Projects {
     DELETE
   */
   async delete(_: unknown, { id }: { id: string }) {
+    // validate id
     badInputIfInvalidId(id, "Invalid project id", { projectId: id }); // validate ID
 
     const deleted = await Project.findByIdAndDelete(id);

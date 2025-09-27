@@ -6,13 +6,13 @@ import Task, {
 } from "../../models/Task.js";
 import User from "../../models/User.js";
 import Project from "../../models/Project.js";
-import { excludePassword } from "../utils/sanitizeUser.js";
+import { excludePassword } from "../../utils/sanitizeUser.js";
 import {
   validateOrThrow,
   notFoundIfNull,
   badInputIfInvalidId,
 } from "../utils/errorHandling.js";
-import { paginateFind, paginateAggregate } from "../utils/pagination.js";
+import { paginateFind, paginateAggregate } from "../../utils/pagination.js";
 
 type CreateInput = {
   title: string;
@@ -78,6 +78,9 @@ class Tasks {
       limit,
     }: { projectId: string; page?: number; limit?: number }
   ) {
+    // validate ID
+    badInputIfInvalidId(projectId, "Invalid project id", { projectId });
+
     const basePipeline = [
       { $match: { projectId: new mongoose.Types.ObjectId(projectId) } },
     ];

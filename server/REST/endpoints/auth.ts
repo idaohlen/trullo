@@ -1,75 +1,106 @@
-import express, { type Request, type Response, type NextFunction } from "express";
-import User, { UserValidationSchema } from "../../models/User";
-import bcrypt from "bcryptjs";
+import express, { type Request, type Response } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import User, { UserValidationSchema } from "../../models/User.js";
+
+import { excludePassword } from "../../utils/sanitizeUser.js";
+import {
+  asyncHandler,
+  conflictError,
+  validationError,
+} from "../middleware/error.middleware.js";
 
 dotenv.config();
 
 const router = express.Router();
 
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post("/register", asyncHandler(registerUser));
+router.post("/login", asyncHandler(loginUser));
+router.post("/logout", asyncHandler(logoutUser));
 
-async function registerUser(req: Request, res: Response, next: NextFunction) {
-  const parseResult = UserValidationSchema.safeParse({
-    ...req.body,
-    password: await bcrypt.hash(req.body.password, 10),
-  });
-
-  if (!parseResult.success) {
-    return res.status(400).json({
-      status: "FAIL",
-      message: "Validation error when parsing user input for a new user",
-      error: parseResult.error,
-    });
-  }
-  try {
-    // Check for existing email
-    const existingUser = await User.findOne({ email: parseResult.data.email });
-    if (existingUser) {
-      return res.status(409).json({
-        status: "FAIL",
-        message: "Email already exists",
-      });
-    }
-
-    const user = await User.create(parseResult.data);
-
-    // Check JWT secret
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) throw new Error("JWT_SECRET environment variable is not set");
-
-    // Create token
-    const token = jwt.sign({ userId: user._id }, jwtSecret, {
-      expiresIn: "1d",
-    });
-    
-    res
-      .status(200)
-      .json({ status: "SUCCESS", message: "Created new user", data: user, token });
-  } catch (error) {
-    next(error);
-  }
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT_SECRET environment variable is not set");
+  return secret;
 }
 
-async function loginUser(req: Request, res: Response, next: NextFunction) {
-  try {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user || !(await user.comparePassword(req.body.password))) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
+async function registerUser(req: Request, res: Response) {
+  // Validate input
+  const parseResult = UserValidationSchema.safeParse(req.body);
+  if (!parseResult.success) validationError(parseResult.error);
 
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) throw new Error("JWT_SECRET environment variable is not set");
+  // Check for conflicting email
+  const existingUser = await User.findOne({ email: parseResult.data.email });
+  if (existingUser) conflictError("Email already exists");
 
-    const token = jwt.sign({ userId: user._id }, jwtSecret, {
+  const user = await User.create(parseResult.data);
+
+  // Create token
+  const token = jwt.sign(
+    { userId: user._id, role: user.role },
+    getJwtSecret(),
+    {
       expiresIn: "1d",
-    });
-    res.status(200).json({ status: "SUCCESS", message: "Logged in user", data: user, token });
-  } catch (error) {
-    next(error);
-  }
+    }
+  );
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 24 * 60 * 60 * 1000,
+  });
+
+  res.status(200).json({
+    status: "SUCCESS",
+    message: "Created new user",
+    data: { user: excludePassword(user) },
+    token,
+  });
+}
+
+async function loginUser(req: Request, res: Response) {
+  // Check if user email exists
+  const existingUser = await User.findOne({ email: req.body.email });
+  if (!existingUser)
+    return res.status(401).json({ error: "Invalid credentials" });
+
+  // Compare password
+  const correctPassword = await existingUser.comparePassword(req.body.password);
+  if (!correctPassword)
+    return res.status(401).json({ error: "Invalid credentials" });
+
+  // Create token
+  const token = jwt.sign(
+    { userId: existingUser._id, role: existingUser.role },
+    getJwtSecret(),
+    {
+      expiresIn: "1d",
+    }
+  );
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 24 * 60 * 60 * 1000,
+  });
+
+  res.status(200).json({
+    status: "SUCCESS",
+    message: "Logged in user",
+    data: { user: excludePassword(existingUser) },
+    token,
+  });
+}
+
+async function logoutUser(_req: Request, res: Response) {
+  res.cookie("token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 0,
+  });
+  res.status(200).json({ status: "SUCCESS", message: "Logged out user" });
 }
 
 export default router;
