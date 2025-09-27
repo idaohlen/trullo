@@ -29,7 +29,9 @@ export async function createApp(): Promise<Express> {
   schema = directives.adminTransformer(schema, "admin");
   schema = directives.selfTransformer(schema, "self");
   schema = directives.ownerTransformer(schema, "owner");
+  schema = directives.ownerOrAdminTransformer(schema, "ownerOrAdmin");
   schema = directives.memberTransformer(schema, "member");
+  schema = directives.memberOrAdminTransformer(schema, "memberOrAdmin");
   
   schema = wrapAllResolversWithErrorHandling(schema);
 

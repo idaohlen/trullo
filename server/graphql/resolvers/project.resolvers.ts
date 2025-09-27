@@ -9,7 +9,7 @@ import {
   notFoundIfNull,
   badInputIfInvalidId,
 } from "../utils/errorHandling.js";
-import { paginateFind } from "../utils/pagination.js";
+import { paginateFind, paginateAggregate } from "../utils/pagination.js";
 
 type CreateInput = {
   title: string;
@@ -49,7 +49,38 @@ class Projects {
     _: unknown,
     { page, limit }: { page?: number; limit?: number }
   ) {
-    return await paginateFind<ProjectDoc>(Project.find(), { page, limit });
+    const pipeline = [
+      // { $match: {} },
+      {
+        $lookup: {
+          from: "users",
+          localField: "ownerId",
+          foreignField: "_id",
+          as: "owner",
+        },
+      },
+      { $unwind: "$owner" },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [
+              "$$ROOT",
+              {
+                owner: {
+                  _id: "$owner._id",
+                  name: "$owner.name",
+                  email: "$owner.email",
+                },
+              },
+            ],
+          },
+        },
+      },
+    ];
+    return await paginateAggregate<ProjectDoc>(Project, pipeline, {
+      page,
+      limit,
+    });
   }
 
   /*

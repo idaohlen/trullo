@@ -125,6 +125,6 @@ async function handleDelete(userId: string) {
 }
 
 function handleEdit(user: User) {
-  openModal("CreateUser", user);
+  openModal("EditUser", user);
 }
 </script>

@@ -13,8 +13,8 @@
       <LoginForm />
     </div>
     <div v-else class="w-full">
-      <MyProjects />
-      <MyTasks />
+      <MyProjects class="mb-10" />
+      <MyTasks />  
     </div>
   </div>
 </template>

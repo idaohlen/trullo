@@ -26,9 +26,9 @@ export default `#graphql
       description: String
       status: TaskStatus
       assignedTo: ID
-    ): Task @auth
+    ): Task @auth @memberOrAdmin(arg: "projectId")
 
-    deleteTask(id: ID!): Boolean @auth
+    deleteTask(id: ID!): Boolean @auth @ownerOrAdmin
   }
   
   enum TaskStatus {

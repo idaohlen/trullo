@@ -4,7 +4,7 @@ type ModalType =
   "CreateTask" 
 | "CreateProject" 
 | "JoinProject"
-| "CreateUser" 
+| "EditUser" 
 | "TaskDetails"
 | "Confirmation"
 | null;

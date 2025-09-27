@@ -14,10 +14,11 @@
   <Card v-else-if="projects.length == 0"> No projects found.</Card>
   <Card v-else class="p-6 gap-4">
     <h2 class="text-2xl font-semibold mb-4">Projects</h2>
-    <div class="grid grid-cols-[1fr_2fr_auto] gap-4 p-8 pt-0">
+    <div class="grid grid-cols-[1fr_2fr_auto_auto] gap-4 p-8 pt-0">
       <!-- Header -->
       <div class="font-medium text-gray-600">Title</div>
       <div class="font-medium text-gray-600">Owner</div>
+      <div class="font-medium text-gray-600">Members</div>
       <div class="font-medium text-gray-600">Actions</div>
 
       <!-- User rows -->
@@ -26,7 +27,10 @@
           {{ project.title }}
         </div>
         <div class="border-b border-gray-100 text-gray-500 text-sm">
-          {{ project.ownerId }}
+          {{ project.owner.email }}
+        </div>
+        <div class="border-b border-gray-100 font-bold  text-sm text-center">
+          {{ project.members.length + 1 }}
         </div>
         <div class="flex gap-2 pb-2">
           <ConfirmationModal
@@ -91,7 +95,6 @@ const { result, loading, error } = useQuery<{ projects: PaginatedProjects }>(
       page: currentPage.value,
       limit: pageSize.value,
     };
-    console.log('GET_PROJECTS query variables:', variables);
     return variables;
   }
 );

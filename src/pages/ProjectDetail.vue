@@ -1,39 +1,48 @@
 <template>
-  <div v-if="loading">Loading project...</div>
+  <div v-if="loading" clas="text-white">Loading project...</div>
   <div v-else-if="error" class="text-white">
     <p class="font-bold text-xl">Error</p>
     {{ error.message }}
-
   </div>
   <div v-else-if="project" class="grid gap-4">
     <div class="flex gap-2 justify-between">
       <h1 class="text-3xl font-bold mb-4 text-white">{{ project.title }}</h1>
       <div class="flex gap-2 items-center justify-between">
-        <!-- Owner-only actions -->
-        <template v-if="isOwner()">
+        <!-- Show for Owner or Admin -->
+        <template v-if="isOwner() || isAdmin">
           <ConfirmationModal
             title="Delete project"
             description="Are you sure you want to delete the project? All tasks will be lost."
             @confirm="handleDelete"
           >
-            <Button variant="ghost" class="text-white hover:text-red-500"><Trash /> Delete project</Button>
+            <Button variant="ghost" class="text-white hover:text-red-500"
+              ><Trash /> Delete project</Button
+            >
           </ConfirmationModal>
-          <Button variant="secondary" @click="handleEdit()">
-            <SquarePen />
-            Edit project
-          </Button>
         </template>
-        
-        <!-- Non-owner actions -->
-        <template v-else>
+
+        <!-- Show for members -->
+        <template v-if="!isOwner() && !isAdmin">
           <ConfirmationModal
             title="Leave project"
             description="Are you sure you want to leave the project?"
             @confirm="handleLeave"
           >
-            <Button variant="ghost" class="text-white hover:text-red-500"> <DoorOpen /> Leave project</Button>
+            <Button variant="ghost" class="text-white hover:text-red-500">
+              <DoorOpen /> Leave project</Button
+            >
           </ConfirmationModal>
         </template>
+
+        <!-- Show for Owner or Admin -->
+        <Button
+          v-if="isOwner() || isAdmin"
+          variant="secondary"
+          @click="handleEdit()"
+        >
+          <SquarePen />
+          Edit project
+        </Button>
       </div>
     </div>
 
@@ -117,17 +126,26 @@
       <div class="flex items-start justify-between gap-4">
         <div class="flex items-center gap-2">
           <h2 class="text-2xl font-semibold">Project Tasks</h2>
-          <Badge variant="outline">{{ tasksPagination?.totalCount ?? 0 }} tasks</Badge>
+          <Badge variant="outline"
+            >{{ tasksPagination?.totalCount ?? 0 }} tasks</Badge
+          >
         </div>
-        <Button @click="handleCreateTask" variant="outline" class="text-emerald-600 border-1 border-emerald-600/50 hover:bg-emerald-100 hover:text-emerald-700"><ClipboardPlus />
-          Add task</Button>
+        <Button
+          @click="handleCreateTask"
+          variant="outline"
+          class="text-emerald-600 border-1 border-emerald-600/50 hover:bg-emerald-100 hover:text-emerald-700"
+          ><ClipboardPlus /> Add task</Button
+        >
       </div>
       <div class="grid sm:grid-cols-2 gap-2">
         <TaskCardList :data="projectTasks" />
       </div>
-      
+
       <!-- Pagination -->
-      <div v-if="tasksPagination && tasksPagination.totalCount > pageSize" class="mt-6">
+      <div
+        v-if="tasksPagination && tasksPagination.totalCount > pageSize"
+        class="mt-6"
+      >
         <Pagination
           :page="currentPage"
           :has-next-page="tasksPagination.hasNextPage"
@@ -168,12 +186,20 @@ import { GET_PROJECT_TASKS } from "@/api/task.gql";
 import TaskCardList from "@/components/TaskCardList.vue";
 import { useAuthStore } from "@/stores/auth";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
-import { CalendarPlus, ClipboardPlus, DoorOpen, SquarePen, Trash } from "lucide-vue-next";
+import {
+  CalendarPlus,
+  ClipboardPlus,
+  DoorOpen,
+  SquarePen,
+  Trash,
+} from "lucide-vue-next";
 import Pagination from "@/components/Pagination.vue";
+import { useAuth } from "@/composables/useAuth";
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const { isAdmin } = useAuth();
 const { openModal } = useModal();
 
 // Get the project ID from the URL parameter
@@ -196,7 +222,8 @@ const { result: tasksData } = useQuery(
 const projectTasks = computed(() => tasksData.value?.projectTasks?.items ?? []);
 const tasksPagination = computed(() => tasksData.value?.projectTasks ?? null);
 
-const { result, loading, error } = useQuery(GET_PROJECT,
+const { result, loading, error } = useQuery(
+  GET_PROJECT,
   // Variables - this is reactive, so when projectId changes, the query reruns
   () => ({ id: projectId.value }),
   // Options - only run the query if we have a project ID
@@ -206,11 +233,15 @@ const { result, loading, error } = useQuery(GET_PROJECT,
 const project = computed(() => result.value?.project as Project | null);
 
 const { mutate: deleteProject } = useMutation(DELETE_PROJECT, {
-  refetchQueries: [{ query: GET_MY_PROJECTS, variables: { page: 1, limit: 6 } }],
+  refetchQueries: [
+    { query: GET_MY_PROJECTS, variables: { page: 1, limit: 6 } },
+  ],
 });
 
 const { mutate: leaveProject } = useMutation(LEAVE_PROJECT, {
-  refetchQueries: [{ query: GET_MY_PROJECTS, variables: { page: 1, limit: 6 } }],
+  refetchQueries: [
+    { query: GET_MY_PROJECTS, variables: { page: 1, limit: 6 } },
+  ],
 });
 
 function isOwner() {
@@ -251,7 +282,7 @@ async function handleLeave() {
 
 function handleEdit() {
   // Double-check ownership before allowing edit
-  if (!isOwner()) {
+  if (!isOwner() && !isAdmin) {
     console.error("Only project owners can edit projects");
     return;
   }

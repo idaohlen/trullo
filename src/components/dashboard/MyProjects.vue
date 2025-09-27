@@ -1,4 +1,5 @@
 <template>
+  <div :class="class">
   <div class="flex gap-4 justify-between mb-2">
     <div class="flex gap-2 items-start">
       <h2 class="text-white text-3xl font-bold mb-2">My Projects</h2>
@@ -67,6 +68,7 @@
       @set-page="handlePageChange"
     />
   </div>
+  </div>
 </template>
 <script setup lang="ts">
 import { computed, ref } from "vue";
@@ -79,6 +81,10 @@ import { useModal } from "@/composables/useModal";
 import { GET_MY_PROJECTS } from "@/api/project.gql";
 import { CopyPlus, Users } from "lucide-vue-next";
 import Pagination from "../Pagination.vue";
+
+defineProps<{
+  class?: string;
+}>();
 
 const { openModal } = useModal();
 
