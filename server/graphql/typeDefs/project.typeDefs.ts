@@ -1,7 +1,7 @@
 export default `#graphql
   type Query {
     project(id: ID!): Project @auth @memberOrAdmin
-    projects(page: Int, limit: Int): PaginatedProjects @auth
+    projects(page: Int, limit: Int, search: String): PaginatedProjects @auth
     myProjects(page: Int, limit: Int): PaginatedProjects @auth
   }
 

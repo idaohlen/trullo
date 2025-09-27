@@ -29,8 +29,15 @@ class Users {
   /*
     GET MANY
   */
-  async getMany(_: unknown, { page, limit }: { page?: number; limit?: number }) {
-    return await paginateFind<UserDoc>(User.find().select("-password"), { page, limit });
+  async getMany(_: unknown, { page, limit, search }: { page?: number; limit?: number; search?: string }) {
+    const match: any = {};
+    if (search && search.trim()) {
+      match.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+    return await paginateFind<UserDoc>(User.find(match).select("-password"), { page, limit });
   }
 
   /*

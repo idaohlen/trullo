@@ -1,20 +1,36 @@
+import { ref, computed } from "vue";
 <template>
-  <div v-if="loading" class="text-white">Loading...</div>
-  <div v-else-if="error">
-    <Alert variant="destructive">
-      <AlertCircle class="h-4 w-4" />
-      <AlertTitle>
-        Error: {{ error.graphQLErrors[0].extensions.code }}
+  <Card class="p-6 gap-4">
+    <h2 class="text-2xl font-semibold">Projects</h2>
+    <div class="relative w-full max-w-sm items-center mb-4">
+      <Input
+        id="search"
+        v-model="search"
+        type="text"
+        placeholder="Search..."
+        class="pl-10"
+      />
+      <span
+        class="absolute start-0 inset-y-0 flex items-center justify-center px-2"
+      >
+        <Search class="size-6 text-muted-foreground" />
+      </span>
+    </div>
+
+    <div v-if="loading">Loading...</div>
+    <div v-else-if="error">
+      <Alert variant="destructive">
+        <AlertCircle class="h-4 w-4" />
+        <AlertTitle>
+          Error: {{ error.graphQLErrors[0].extensions.code }}
         </AlertTitle>
-      <AlertDescription>
-        {{ error.graphQLErrors[0].message }}
-      </AlertDescription>
-    </Alert>
-  </div>
-  <Card v-else-if="projects.length == 0"> No projects found.</Card>
-  <Card v-else class="p-6 gap-4">
-    <h2 class="text-2xl font-semibold mb-4">Projects</h2>
-    <div class="grid grid-cols-[1fr_2fr_auto_auto] gap-4 p-8 pt-0">
+        <AlertDescription>
+          {{ error.graphQLErrors[0].message }}
+        </AlertDescription>
+      </Alert>
+    </div>
+    <div v-else-if="projects.length == 0" class="p-6">No projects found.</div>
+    <div v-else class="grid grid-cols-[1fr_2fr_auto_auto] gap-4 p-8 pt-0">
       <!-- Header -->
       <div class="font-medium text-gray-600">Title</div>
       <div class="font-medium text-gray-600">Owner</div>
@@ -29,7 +45,7 @@
         <div class="border-b border-gray-100 text-gray-500 text-sm">
           {{ project.owner.email }}
         </div>
-        <div class="border-b border-gray-100 font-bold  text-sm text-center">
+        <div class="border-b border-gray-100 font-bold text-sm text-center">
           {{ project.members.length + 1 }}
         </div>
         <div class="flex gap-2 pb-2">
@@ -56,9 +72,7 @@
     </div>
 
     <!-- Pagination -->
-    <div
-      v-if="projectsPagination && projectsPagination.totalCount > pageSize"
-    >
+    <div v-if="projectsPagination && projectsPagination.totalCount > pageSize">
       <Pagination
         :page="currentPage"
         :has-next-page="projectsPagination.hasNextPage"
@@ -78,15 +92,19 @@ import { useModal } from "@/composables/useModal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Edit, Trash } from "lucide-vue-next";
+import { AlertCircle, Edit, Search, Trash } from "lucide-vue-next";
 import ConfirmationModal from "@/components/ConfirmationModal.vue";
 import Pagination from "@/components/Pagination.vue";
+import { Input } from "../ui/input";
+import { useDebouncedRef } from "@/composables/useDebouncedRef";
 
 const { openModal } = useModal();
 
 // Pagination state
 const currentPage = ref(1);
 const pageSize = ref(10);
+const search = ref("");
+const debouncedSearch = useDebouncedRef(search, 300);
 
 const { result, loading, error } = useQuery<{ projects: PaginatedProjects }>(
   GET_PROJECTS,
@@ -94,20 +112,21 @@ const { result, loading, error } = useQuery<{ projects: PaginatedProjects }>(
     const variables = {
       page: currentPage.value,
       limit: pageSize.value,
+      search: debouncedSearch.value,
     };
     return variables;
   }
 );
 const { mutate: deleteProject } = useMutation(DELETE_PROJECT, {
   refetchQueries: () => [
-    { 
+    {
       query: GET_PROJECTS,
       variables: {
         page: currentPage.value,
         limit: pageSize.value,
-      }
+      },
     },
-    { query: GET_PROJECTS }
+    { query: GET_PROJECTS },
   ],
 });
 

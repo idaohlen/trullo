@@ -20,8 +20,8 @@ export const GET_PROJECT =  gql`
 `;
 
 export const GET_PROJECTS = gql`
-  query GetProjects($page: Int, $limit: Int) {
-    projects(page: $page, limit: $limit) {
+  query GetProjects($page: Int, $limit: Int, $search: String) {
+    projects(page: $page, limit: $limit, search: $search) {
       items {
         id 
         title 

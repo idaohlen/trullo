@@ -1,7 +1,7 @@
 export default `#graphql
   type Query {
     user(id: ID!): User @auth
-    users(page: Int, limit: Int): PaginatedUsers @auth
+    users(page: Int, limit: Int, search: String): PaginatedUsers @auth
     me: User @auth
     roles: [Role]
   }

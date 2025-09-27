@@ -1,4 +1,4 @@
-import mongoose, { type Types } from "mongoose";
+import mongoose, { type Types, type PipelineStage } from "mongoose";
 import Project, {
   ProjectValidationSchema,
   type Project as ProjectDoc,
@@ -47,10 +47,17 @@ class Projects {
   */
   async getMany(
     _: unknown,
-    { page, limit }: { page?: number; limit?: number }
+    { page, limit, search }: { page?: number; limit?: number; search?: String }
   ) {
-    const pipeline = [
-      // { $match: {} },
+    const match: any = {};
+    if (search && search.trim()) {
+      match.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+    const pipeline: PipelineStage[] = [
+      Object.keys(match).length ? { $match: match } : undefined,
       {
         $lookup: {
           from: "users",
@@ -76,7 +83,8 @@ class Projects {
           },
         },
       },
-    ];
+    ].filter(Boolean) as PipelineStage[];
+
     return await paginateAggregate<ProjectDoc>(Project, pipeline, {
       page,
       limit,
