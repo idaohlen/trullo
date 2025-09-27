@@ -283,14 +283,14 @@ async function handleSaveProject() {
       await updateProject({
         id: props.project.id,
         title: title.value.trim(),
-        description: description.value || null,
+        description: description.value || undefined,
         ownerId: ownerId.value || undefined,
         members: finalMembers.length > 0 ? finalMembers : null,
       });
     } else {
       await addProject({
         title: title.value.trim(),
-        description: description.value || null,
+        description: description.value || undefined,
         ownerId: authStore.user.id,
         members:
           selectedMembers.value.length > 0 ? selectedMembers.value : null,

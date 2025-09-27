@@ -73,7 +73,7 @@
       </TabsContent>
     </Tabs>
   </Card>
-  <Alert v-if="error" variant="destructive" class="max-w-xs">
+  <Alert v-if="error" variant="destructive" class="max-w-xs mt-2">
     <AlertCircle class="w-4 h-4" />
     <AlertTitle>Invalid input</AlertTitle>
     <AlertDescription>

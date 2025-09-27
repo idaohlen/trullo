@@ -22,6 +22,7 @@ export default `#graphql
 
     updateTask(
       id: ID!
+      projectId: ID!
       title: String
       description: String
       status: TaskStatus

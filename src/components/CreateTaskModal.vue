@@ -240,6 +240,7 @@ async function handleSaveTask() {
     if (isEdit.value && props.task) {
       await updateTask({
         id: props.task.id,
+        projectId: props.task.projectId,
         title: title.value.trim(),
         description: description.value,
         status: status.value || undefined,

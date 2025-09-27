@@ -124,9 +124,9 @@ const { mutate: deleteProject } = useMutation(DELETE_PROJECT, {
       variables: {
         page: currentPage.value,
         limit: pageSize.value,
+        search: debouncedSearch.value,
       },
     },
-    { query: GET_PROJECTS },
   ],
 });
 

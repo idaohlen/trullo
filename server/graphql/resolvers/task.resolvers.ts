@@ -110,7 +110,7 @@ class Tasks {
     badInputIfInvalidId(id, "Invalid task id", { taskId: id });
     const task = await Task.findById(id);
 
-    notFoundIfNull(task, "Task not found", { taskId: id }); // error handling
+    notFoundIfNull(task, "Task not found", { taskId: id });
     return task;
   }
 

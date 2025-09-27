@@ -119,6 +119,7 @@ const { mutate: deleteUser } = useMutation(DELETE_USER, {
       variables: {
         page: currentPage.value,
         limit: pageSize.value,
+        search: debouncedSearch.value,
       },
     },
     { query: GET_TASKS },

@@ -24,6 +24,7 @@ export const GET_TASK = gql`
         name
         email
       }
+      projectId
       createdAt
       updatedAt
       finishedAt
@@ -157,6 +158,7 @@ export const ADD_TASK = gql`
 export const UPDATE_TASK = gql`
   mutation UpdateTask(
     $id: ID!
+    $projectId: ID!
     $title: String
     $description: String
     $status: TaskStatus
@@ -164,6 +166,7 @@ export const UPDATE_TASK = gql`
   ) {
     updateTask(
       id: $id
+      projectId: $projectId
       title: $title
       description: $description
       status: $status
