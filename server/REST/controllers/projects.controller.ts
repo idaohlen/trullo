@@ -182,7 +182,7 @@ async function updateById(req: Request, res: Response) {
   if (!updatedProject) notFound("Project not found");
   res.status(200).json({
     status: "SUCCESS",
-    message: "Updated task by id",
+    message: "Updated project by id",
     data: await formatProjectResponse(updatedProject),
   });
 }

@@ -1,7 +1,7 @@
 import express from "express";
 import tasks from "../controllers/tasks.controller.js";
 import { asyncHandler } from "../middleware/error.middleware.js";
-import { requireMemberOrAdmin } from "../middleware/role.middleware.js";
+import { requireAdmin } from "../middleware/role.middleware.js";
 
 const router = express.Router();
 
@@ -61,6 +61,6 @@ router.get("/status-values", asyncHandler(tasks.getStatusValues));
  *       200:
  *         description: List of all tasks
  */
-router.get("/", requireMemberOrAdmin, asyncHandler(tasks.getAll));
+router.get("/", requireAdmin, asyncHandler(tasks.getAll));
 
 export default router;

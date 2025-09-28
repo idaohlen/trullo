@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { type Request, type Response } from "express";
 import Task, { TaskValidationSchema, type Task as TaskType } from "../../models/Task.js";
+import Project from "../../models/Project.js";
 import { formatTaskResponse } from "../utils/formatResponse.js";
 import { paginateAggregate } from "../../utils/pagination.js";
 import { badRequest, notFound, validationError } from "../middleware/error.middleware.js";
@@ -9,15 +10,21 @@ import { badRequest, notFound, validationError } from "../middleware/error.middl
   CREATE
 */
 export async function createTask(req: Request, res: Response) {
+  // Validate id
   const { projectId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(projectId)) badRequest("Invalid project id");
-  const Project = require("../../models/Project.js").default;
+
+  // Check that project exists
   const project = await Project.findById(projectId);
   if (!project) notFound("Project not found");
+
   const input = req.body;
   input.projectId = projectId;
+
+  // Validate input
   const parseResult = TaskValidationSchema.safeParse(input);
   if (!parseResult.success) validationError(parseResult.error);
+
   const task = await Task.create(parseResult.data);
   res.status(200).json({
     status: "SUCCESS",
@@ -85,7 +92,7 @@ export async function updateById(req: Request, res: Response) {
   const parseResult = TaskUpdateSchema.safeParse(req.body);
   if (!parseResult.success) validationError(parseResult.error);
 
-  const update: Record<string, any> = { ...parseResult };
+  const update: Record<string, any> = { ...parseResult.data };
   if (input.status) {
     if (input.status === "DONE") {
       update.finishedAt = new Date();

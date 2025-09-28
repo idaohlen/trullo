@@ -2,7 +2,7 @@ import express from "express";
 import tasks from "../controllers/projects.tasks.controller.js";
 import { asyncHandler } from "../middleware/error.middleware.js";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 /**
  * @swagger
@@ -34,7 +34,7 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/Task'
  */
-router.post("/:projectId/tasks", asyncHandler(tasks.create));
+router.post("/", asyncHandler(tasks.create));
 /**
  * @swagger
  * /projects/{projectId}/tasks:
@@ -78,7 +78,7 @@ router.post("/:projectId/tasks", asyncHandler(tasks.create));
  *                   items:
  *                     $ref: '#/components/schemas/Task'
  */
-router.get("/:projectId/tasks", asyncHandler(tasks.getAll));
+router.get("/", asyncHandler(tasks.getAll));
 /**
  * @swagger
  * /projects/{projectId}/tasks/{taskId}:
@@ -109,7 +109,7 @@ router.get("/:projectId/tasks", asyncHandler(tasks.getAll));
  *             schema:
  *               $ref: '#/components/schemas/Task'
  */
-router.get("/:projectId/tasks/:taskId", asyncHandler(tasks.getById));
+router.get("/:taskId", asyncHandler(tasks.getById));
 /**
  * @swagger
  * /projects/{projectId}/tasks/{taskId}:
@@ -146,7 +146,7 @@ router.get("/:projectId/tasks/:taskId", asyncHandler(tasks.getById));
  *             schema:
  *               $ref: '#/components/schemas/Task'
  */
-router.put("/:projectId/tasks/:taskId", asyncHandler(tasks.update));
+router.put("/:taskId", asyncHandler(tasks.update));
 /**
  * @swagger
  * /projects/{projectId}/tasks/{taskId}:
@@ -182,6 +182,6 @@ router.put("/:projectId/tasks/:taskId", asyncHandler(tasks.update));
  *                 message:
  *                   type: string
  */
-router.delete("/:projectId/tasks/:taskId", asyncHandler(tasks.delete));
+router.delete("/:taskId", asyncHandler(tasks.delete));
 
 export default router;

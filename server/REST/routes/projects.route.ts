@@ -68,7 +68,7 @@ router.get("/mine", asyncHandler(projects.getMine));
  *                   items:
  *                     $ref: '#/components/schemas/Task'
  */
-router.use("/tasks", requireMemberOrAdmin, tasksRouter);
+router.use("/:projectId/tasks", requireMemberOrAdmin, tasksRouter);
 
 /**
  * @swagger

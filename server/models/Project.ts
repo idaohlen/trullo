@@ -18,7 +18,7 @@ const projectSchema = new mongoose.Schema({
 export const ProjectValidationSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  ownerId: z.string().min(1, "An owner is required"),
+  ownerId: z.string().optional(),
   members: z.array(z.string()).optional(),
 });
 
