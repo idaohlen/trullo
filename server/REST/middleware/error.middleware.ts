@@ -36,10 +36,14 @@ export function errorHandler(
 }
 
 export function validationError(error: ZodError): never {
+  const formatted = error.issues.map(e => ({
+    path: e.path.join("."),
+    message: e.message
+  }));
   throw new HttpError(
     "Validation error when parsing user input",
     400,
-    error
+    formatted
   );
 }
 

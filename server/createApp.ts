@@ -12,6 +12,8 @@ import connectDB from "./db.js";
 import typeDefs from "./graphql/typeDefs/index.js";
 import resolvers from "./graphql/resolvers/index.js";
 import restAPI from "./rest";
+import swaggerUI from "swagger-ui-express";
+import swaggerSpec from "./swagger.js";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -63,6 +65,7 @@ export async function createApp(): Promise<Express> {
 
   // REST endpoint
   app.use("/api", restAPI);
+  app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
   // GraphQL endpoint
   app.use(

@@ -1,17 +1,17 @@
 import express, { type Request, type Response } from "express";
-import usersResource from "./endpoints/users.js";
-import projectsResource from "./endpoints/projects.js";
-import tasksResource from "./endpoints/tasks.js";
-import auth from "./endpoints/auth.js";
+import auth from "./routes/auth.route.js";
+import users from "./routes/users.route.js";
+import projects from "./routes/projects.route.js";
+import tasks from "./routes/tasks.route.js";
 import { requireAuth } from "./middleware/auth.middleware.ts";
 import { errorHandler } from "./middleware/error.middleware.ts";
 
 const router = express.Router();
 
-router.use("/users", requireAuth, usersResource);
-router.use("/projects", requireAuth, projectsResource);
-router.use("/tasks", requireAuth, tasksResource);
 router.use("/auth", auth);
+router.use("/users", requireAuth, users);
+router.use("/projects", requireAuth, projects);
+router.use("/tasks", requireAuth, tasks);
 
 // Welcome route
 router.get("/", (_req: Request, res: Response) => {

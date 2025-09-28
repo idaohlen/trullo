@@ -1,39 +1,16 @@
 import mongoose, { type PipelineStage } from "mongoose";
-import express, { type Request, type Response } from "express";
+import { type Request, type Response } from "express";
 import Project, {
   ProjectValidationSchema,
   type Project as ProjectType,
 } from "../../models/Project.js";
 import { formatProjectResponse } from "../utils/formatResponse.js";
-import tasksRouter from "./projects.tasks.js";
 import { paginateFind, paginateAggregate } from "../../utils/pagination.js";
 import {
-  asyncHandler,
   badRequest,
   notFound,
   validationError,
 } from "../middleware/error.middleware.js";
-import { requireMember, requireMemberOrAdmin, requireOwnerOrAdmin } from "../middleware/role.middleware.js";
-
-const router = express.Router();
-
-router.get("/mine", asyncHandler(getMine));
-router.use("/tasks", requireMemberOrAdmin, tasksRouter);
-
-router.post("/:projectId/members/:userId", requireOwnerOrAdmin, asyncHandler(addMember));
-router.delete("/:projectId/members/:userId", requireOwnerOrAdmin, asyncHandler(removeMember));
-
-router.post("/:projectId/join", asyncHandler(join));
-router.post("/:projectId/leave", requireMember, asyncHandler(leave));
-
-router.get("/:projectId", requireMemberOrAdmin, asyncHandler(getById));
-router.put("/:projectId", requireOwnerOrAdmin, asyncHandler(updateById));
-router.delete("/:projectId", requireOwnerOrAdmin, asyncHandler(deleteById));
-
-router.post("/", asyncHandler(createProject));
-router.get("/", asyncHandler(getAll));
-
-export default router;
 
 /*
   CREATE
@@ -336,3 +313,16 @@ async function deleteById(req: Request, res: Response) {
 
   res.status(200).json({ status: "SUCCESS", message: "Deleted project by id" });
 }
+
+export default {
+  create: createProject,
+  getAll: getAll,
+  getById: getById,
+  getMine: getMine,
+  addMember: addMember,
+  removeMember: removeMember,
+  join: join,
+  leave: leave,
+  update: updateById,
+  delete: deleteById,
+};

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import express, { type Request, type Response } from "express";
+import { type Request, type Response } from "express";
 import bcrypt from "bcryptjs";
 import User, {
   UserValidationSchema,
@@ -7,27 +7,12 @@ import User, {
 } from "../../models/User";
 import Task from "../../models/Task.js";
 import {
-  asyncHandler,
   badRequest,
   notFound,
   validationError,
 } from "../middleware/error.middleware.js";
 import { paginateFind } from "../../utils/pagination.js";
 import { excludePassword } from "../../utils/sanitizeUser.js";
-import { requireAdmin, requireAdminOrSelf } from "../middleware/role.middleware.js";
-
-const router = express.Router();
-
-router.get("/roles", asyncHandler(getRoles));
-router.get("/me", asyncHandler(getMe));
-
-router.put("/:userId/role", requireAdmin, asyncHandler(updateRole));
-
-router.get("/:userId", asyncHandler(getById));
-router.put("/:userId", requireAdminOrSelf, asyncHandler(updateById));
-router.delete("/:userId", requireAdminOrSelf, asyncHandler(deleteById));
-
-router.get("/", asyncHandler(getAll));
 
 const roles = ["USER", "ADMIN"];
 
@@ -44,9 +29,10 @@ async function getAll(req: Request, res: Response) {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 25;
   const rawSearch = req.query.search;
-  const search = typeof rawSearch === "string"
-    ? rawSearch
-    : Array.isArray(rawSearch)
+  const search =
+    typeof rawSearch === "string"
+      ? rawSearch
+      : Array.isArray(rawSearch)
       ? rawSearch[0]
       : "";
 
@@ -168,9 +154,13 @@ async function updateRole(req: Request, res: Response) {
   if (!mongoose.Types.ObjectId.isValid(userId)) badRequest("Invalid user id");
 
   // Check that user exists
-  const user = await User.findByIdAndUpdate(userId, { role }, {
-    new: true,
-  }).select("-password");
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { role },
+    {
+      new: true,
+    }
+  ).select("-password");
   if (!user) notFound("User not found");
 
   res
@@ -207,4 +197,12 @@ async function deleteById(req: Request, res: Response) {
   res.status(200).json({ status: "SUCCESS", message: "Deleted user by id" });
 }
 
-export default router;
+export default {
+  getAll: getAll,
+  getById: getById,
+  getMe: getMe,
+  update: updateById,
+  updateRole: updateRole,
+  delete: deleteById,
+  getRoles: getRoles,
+};

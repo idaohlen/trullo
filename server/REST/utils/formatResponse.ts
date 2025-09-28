@@ -15,36 +15,35 @@ export async function formatUserResponse(user: UserType) {
 
 export async function formatProjectResponse(project: ProjectType) {
   if (!project) return null;
-  // const owner = project.ownerId ? await User.findById(project.ownerId) : null;
-  const allUserIds = [project.ownerId, ...(project.members || [])];
+  const rawProject = typeof (project as any).toObject === "function" ? (project as any).toObject() : project;
+  const allUserIds = [rawProject.ownerId, ...(rawProject.members || [])];
   const uniqueUserIds = [...new Set(allUserIds.map((id) => String(id)))];
   const membersList = await User.find({ _id: { $in: uniqueUserIds } }).select("-password");
 
-
   return {
-    ...project.toObject(),
-    id: String(project._id),
-    // owner: owner,
+    ...rawProject,
+    id: String(rawProject._id),
     membersList: membersList,
-    createdAt: project.createdAt ? project.createdAt.toISOString() : null,
-    updatedAt: project.updatedAt ? project.updatedAt.toISOString() : null,
+    createdAt: rawProject.createdAt ? rawProject.createdAt.toISOString() : null,
+    updatedAt: rawProject.updatedAt ? rawProject.updatedAt.toISOString() : null,
   };
 }
 
 export async function formatTaskResponse(task: TaskType) {
   if (!task) return null;
-  const assignee = task.assignedTo ? await User.findById(task.assignedTo) : null;
-  const finisher = task.finishedBy ? await User.findById(task.finishedBy) : null;
-  const project = task.projectId ? await Project.findById(task.projectId) : null;
+  const rawTask = typeof (task as any).toObject === "function" ? (task as any).toObject() : task;
+  const assignee = rawTask.assignedTo ? await User.findById(rawTask.assignedTo) : null;
+  const finisher = rawTask.finishedBy ? await User.findById(rawTask.finishedBy) : null;
+  const project = rawTask.projectId ? await Project.findById(rawTask.projectId) : null;
 
   return {
-    ...task.toObject(),
-    id: String(task._id),
-    projectId: String(task.projectId),
+    ...rawTask,
+    id: String(rawTask._id),
+    projectId: String(rawTask.projectId),
     project: project,
-    createdAt: task.createdAt ? task.createdAt.toISOString() : null,
-    updatedAt: task.updatedAt ? task.updatedAt.toISOString() : null,
-    finishedAt: task.finishedAt ? task.finishedAt.toISOString() : null,
+    createdAt: rawTask.createdAt ? rawTask.createdAt.toISOString() : null,
+    updatedAt: rawTask.updatedAt ? rawTask.updatedAt.toISOString() : null,
+    finishedAt: rawTask.finishedAt ? rawTask.finishedAt.toISOString() : null,
     assignee: assignee ? excludePassword(assignee) : null,
     finisher: finisher ? excludePassword(finisher) : null,
   };

@@ -1,18 +1,13 @@
-import express, { type Request, type Response } from "express";
+import { type Request, type Response } from "express";
 import Task, { type Task as TaskType } from "../../models/Task";
 import { paginateFind } from "../../utils/pagination.js";
 import { formatTaskResponse } from "../utils/formatResponse.js";
-import { asyncHandler } from "../middleware/error.middleware.js";
-import { requireMemberOrAdmin } from "../middleware/role.middleware.js";
-
-const router = express.Router();
-
-router.get("/mine", asyncHandler(getMine));
-router.get("/status-values", asyncHandler(getStatusValues));
-router.get("/", requireMemberOrAdmin, asyncHandler(getAll));
 
 const statusValues = ["TO_DO", "IN_PROGRESS", "BLOCKED", "DONE"];
 
+/*
+  GET STATUS VALUES
+*/
 async function getStatusValues(_req: Request, res: Response) {
   res.status(200).json({
     status: "SUCCESS",
@@ -62,4 +57,8 @@ async function getMine(req: Request, res: Response) {
   });
 }
 
-export default router;
+export default {
+  getAll,
+  getMine,
+  getStatusValues
+};
