@@ -1,12 +1,13 @@
 export default `#graphql
   type Query {
-    task(id: ID!): Task @auth
+    task(id: ID!): Task @auth #TODO: change to admin-only access
+    # TODO: add projectTask with memberOrAdmin access
     tasks(page: Int, limit: Int): PaginatedTasks @auth @admin
     projectTasks(
       projectId: ID!, 
       page: Int,
       limit: Int):
-      PaginatedTasks @auth
+      PaginatedTasks @auth @memberOrAdmin(arg: "projectId")
     myTasks(page: Int, limit: Int): PaginatedTasks @auth
     taskStatusValues: [TaskStatus!]!
   }
@@ -29,7 +30,7 @@ export default `#graphql
       assignedTo: ID
     ): Task @auth @memberOrAdmin(arg: "projectId")
 
-    deleteTask(id: ID!): Boolean @auth @ownerOrAdmin
+    deleteTask(id: ID!): Boolean @auth @ownerOrAdmin #TODO: change to @memberOrAdmin(arg: "projectId")
   }
   
   enum TaskStatus {

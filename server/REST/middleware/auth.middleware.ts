@@ -3,6 +3,7 @@ import jwt, { type JwtPayload } from "jsonwebtoken";
 
 export interface AuthenticatedRequest extends Request {
   userId?: string;
+  role?: string;
 }
 
 export function requireAuth(
@@ -25,7 +26,9 @@ export function requireAuth(
     // Make sure payload token is valid
     const payload = jwt.verify(token, jwtSecret);
     if (typeof payload === "object" && "userId" in payload) {
-      req.userId = (payload as JwtPayload & { userId: string }).userId;
+      const jwtPayload = payload as JwtPayload & { userId: string; role?: string };
+      req.userId = jwtPayload.userId;
+      req.role = jwtPayload.role || undefined;
       next();
     } else {
       return res.status(401).json({ status: "FAIL", message: "Invalid token payload" });

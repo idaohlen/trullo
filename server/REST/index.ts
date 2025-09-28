@@ -13,7 +13,8 @@ router.use("/projects", requireAuth, projectsResource);
 router.use("/tasks", requireAuth, tasksResource);
 router.use("/auth", auth);
 
-router.use("/", (_req: Request, res: Response) => {
+// Welcome route
+router.get("/", (_req: Request, res: Response) => {
   res.status(200).json({
     message: "Welcome to the Trullo RESTful API!",
     endpoints: {
@@ -25,7 +26,18 @@ router.use("/", (_req: Request, res: Response) => {
       users: "/api/users",
     },
   });
-})
+});
+
+// Catch-all for invalid routes
+router.use((req: Request, res: Response) => {
+  res.status(404).json({
+    status: "FAIL",
+    route: req.originalUrl,
+    method: req.method,
+    message: `Route not found: ${req.originalUrl} [${req.method}]. Check your spelling and HTTP method.`
+  });
+});
+
 router.use(errorHandler);
 
 export default router;

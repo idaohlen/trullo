@@ -4,7 +4,7 @@ import Project, {
   ProjectValidationSchema,
   type Project as ProjectType,
 } from "../../models/Project.js";
-import Task, { type Task as TaskType } from "../../models/Task";
+import Task, { type Task as TaskType } from "../../models/Task.js";
 import {
   formatTaskResponse,
   formatProjectResponse,
@@ -16,19 +16,22 @@ import {
   notFound,
   validationError,
 } from "../middleware/error.middleware.js";
+import { requireMember, requireMemberOrAdmin, requireOwnerOrAdmin } from "../middleware/role.middleware.js";
 
 const router = express.Router();
 
 router.get("/mine", asyncHandler(getMine));
 
-router.post("/:projectId/members/:userId", asyncHandler(addMember));
+router.post("/:projectId/members/:userId", requireOwnerOrAdmin, asyncHandler(addMember));
 router.delete("/:projectId/members/:userId", asyncHandler(removeMember));
-router.get("/:projectId/tasks", asyncHandler(getProjectTasks));
+
+router.get("/:projectId/tasks", requireMemberOrAdmin, asyncHandler(getProjectTasks));
 router.post("/:projectId/join", asyncHandler(join));
-router.post("/:projectId/leave", asyncHandler(leave));
-router.get("/:projectId", asyncHandler(getById));
-router.put("/:projectId", asyncHandler(updateById));
-router.delete("/:projectId", asyncHandler(deleteById));
+router.post("/:projectId/leave", requireMember, asyncHandler(leave));
+
+router.get("/:projectId", requireMemberOrAdmin, asyncHandler(getById));
+router.put("/:projectId", requireOwnerOrAdmin, asyncHandler(updateById));
+router.delete("/:projectId", requireOwnerOrAdmin, asyncHandler(deleteById));
 
 router.post("/", asyncHandler(createNew));
 router.get("/", asyncHandler(getAll));

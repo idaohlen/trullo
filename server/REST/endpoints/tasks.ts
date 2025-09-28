@@ -12,17 +12,19 @@ import {
   notFound,
   validationError,
 } from "../middleware/error.middleware.js";
+import { requireMember, requireMemberOrAdmin } from "../middleware/role.middleware.js";
 
 const router = express.Router();
 
-router.get("/:taskId", asyncHandler(getById));
-router.put("/:taskId", asyncHandler(updateById));
-router.delete("/:taskId", asyncHandler(deleteById));
-
 router.get("/mine", asyncHandler(getMine));
 router.get("/status-values", asyncHandler(getStatusValues));
-router.post("/", asyncHandler(createNew));
-router.get("/", asyncHandler(getAll));
+
+router.get("/:taskId", asyncHandler(getById));
+router.put("/:taskId", requireMemberOrAdmin, asyncHandler(updateById));
+router.delete("/:taskId", requireMemberOrAdmin, asyncHandler(deleteById));
+
+router.post("/", requireMember, asyncHandler(createNew));
+router.get("/", requireMemberOrAdmin, asyncHandler(getAll));
 
 const statusValues = ["TO_DO", "IN_PROGRESS", "BLOCKED", "DONE"];
 

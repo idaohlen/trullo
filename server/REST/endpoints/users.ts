@@ -14,16 +14,19 @@ import {
 } from "../middleware/error.middleware.js";
 import { paginateFind } from "../../utils/pagination.js";
 import { excludePassword } from "../../utils/sanitizeUser.js";
+import { requireAdmin, requireAdminOrSelf } from "../middleware/role.middleware.js";
 
 const router = express.Router();
 
-router.put("/:userId/role", asyncHandler(updateRole));
-router.get("/:userId", asyncHandler(getById));
-router.put("/:userId", asyncHandler(updateById));
-router.delete("/:userId", asyncHandler(deleteById));
-
 router.get("/roles", asyncHandler(getRoles));
 router.get("/me", asyncHandler(getMe));
+
+router.put("/:userId/role", requireAdmin, asyncHandler(updateRole));
+
+router.get("/:userId", asyncHandler(getById));
+router.put("/:userId", requireAdminOrSelf, asyncHandler(updateById));
+router.delete("/:userId", requireAdminOrSelf, asyncHandler(deleteById));
+
 router.get("/", asyncHandler(getAll));
 
 const roles = ["USER", "ADMIN"];
