@@ -2,15 +2,16 @@
 
 Trullo är ett enkelt projekthanteringsverktyg som låter användare planera, organisera och samarbeta kring projekt och uppgifter.
 
-Detta är i huvudsak ett RESTful API-projekt byggt för MongoDB med Express och Mongoose, men har också en GraphQL-API som speglar innehållet i REST-API:et. Frontend är byggt med Vue.js och använder sig av GraphQL och Apollo server/client för att hämta och visa data från databasen.
+Detta är i huvudsak ett RESTful API-projekt byggt för MongoDB med Express och Mongoose skrivet med TypeScript, men har också en GraphQL-API som speglar innehållet i REST-API:et. Frontend är byggt med Vue.js och använder sig av GraphQL och Apollo server/client för att hämta och visa data från databasen.
 
 ## Teknikstack
+- [TypeScript](https://www.typescriptlang.org)
 - [Vite](https://vite.dev)
 - [Express](https://expressjs.com)
 - [MongoDB](https://www.mongodb.com/docs/manual/)
 - [Mongoose](https://mongoosejs.com)
 - [Apollo GraphQL](https://www.apollographql.com)
-- [Vue](https://vuejs.org)
+- [Vue.js](https://vuejs.org)
 - [Vue Apollo](https://apollo.vuejs.org)
 
 ## Kom igång
