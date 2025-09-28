@@ -61,6 +61,8 @@ password: Password1!
 
 I `/server/scripts/seed-data/project.js` hittar du ännu fler dummy-users om du hellre vill logga in med dem istället. Eller så registrerar du en helt ny användare genom REST- eller GraphQL-API:et, alternativt direkt i frontend. Nya användare får automatiskt rollen `user` och har begränsad åtkomst i API:erna och i frontend, så roll behöver ändras manuellt i databasen eller genom en admin-användare.
 
+Du kan besöka `http://localhost:4000/api-docs` för att få en översikt över alla rutter som finns i REST-API:et.
+
 
 ## Teoretiska resonemang
 
