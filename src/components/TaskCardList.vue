@@ -17,13 +17,15 @@
         {{ getFirstLine(task.description) }}
       </div>
       <div class="flex items-end justify-between gap-2">
-      <Badge
-        v-if="task.assignee"
-        variant="outline"
-        class="text-[.7rem] bg-white mt-2"
-        >
-        {{ task.assignee.name }}
-        </Badge>
+        <div>
+          <Badge
+          v-if="task.assignee"
+          variant="outline"
+          class="text-[.7rem] bg-white mt-2"
+          >
+          {{ task.assignee.name }}
+          </Badge>
+        </div>
         <StatusBadge :data="task.status" />
       </div>
 
